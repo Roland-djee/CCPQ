@@ -1,0 +1,15 @@
+program test_crystal
+  use types
+  use read
+  use crystal
+ 
+  implicit none
+
+  ! test generate_crystal
+  call generate_crystal
+
+  ! test generate_impurities
+  !call generate_impurities
+
+end program test_crystal
+
