@@ -1,0 +1,4 @@
+Output crystal sites coordinates ? [t/f]       : .false.
+Output crystal impurities coordinates ? [t/f]  : .false.
+Output couplings values ? [t/f]                : .false.
+Output decoherence ? [t/f]                     : .false.
