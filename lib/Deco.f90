@@ -37,7 +37,7 @@ contains
 
   subroutine pseudo
     implicit none
-    double precision :: C12_nuc(nb_imp - 1)
+    double precision :: CA1(nb_imp - 1)
 
     ! set the dynamics type
     select case (Decotype)
@@ -46,18 +46,23 @@ contains
           write(*,*)"DFF is not supported for electron/mixed decoherence..."
           stop
        else
-          call select_nuc (C12_nuc)
-          call DFF (C12_nuc)
+          call select_nuc (CA1)
+          call DFF (CA1) 
        end if
     case ("IFF")
-       call IFF
+       if (Qubittype == "electron" .or. Qubittype == "mixed") then
+          call IFF
+       else
+          call select_nuc (CA1)
+          call IFF
+       end if
     case ("IDFF")
        if (Qubittype == "electron" .or. Qubittype == "mixed") then
           write(*,*)"IDFF is only supported for nuclear decoherence..."
           stop
        else
-          call select_nuc (C12_nuc)
-          call DFF (C12_nuc)
+          call select_nuc (CA1) 
+          call DFF (CA1) 
           call IFF
        end if
      case default
@@ -67,19 +72,25 @@ contains
   
   end subroutine pseudo
 
-  subroutine select_nuc (C12_nuc)
+  subroutine select_nuc (CA1)
     implicit none
-    double precision, intent(out) :: C12_nuc(nb_imp - 1)
+    double precision, intent(out) :: CA1(nb_imp - 1)
     ! Local variables
     integer :: loc, k, l, m, n
-    double precision :: J_nuc(nb_imp - 1)
-    
+    integer :: Np
+    double precision, allocatable :: C12_tmp(:)
+    double precision, allocatable :: DC_tmp(:)
 
+    Np = (nb_imp - 1) * (nb_imp - 2) / 2
+
+    allocate(C12_tmp(Np), DC_tmp(Np))
+  
     ! locate the nearest impurity to the input J value
-    loc = minloc(abs(J - Jnuc), 1)
+    loc  = minloc(abs(J - Jnuc), 1)
     Jnuc = J(loc)
 
-    ! select the corresponding C12 values
+    ! select corresponding C12 values between qubit A and
+    ! all other impurities for DFF
     m = 0
     n = 0
     do k=1,nb_imp - 1
@@ -87,26 +98,53 @@ contains
           m = m + 1
           if ((k .ne. loc) .and. (l == loc)) then
              n = n + 1
-             C12_nuc(n) = C12(m)
-             J_nuc(n)   = J(m)
+             CA1(n) = C12(m)
+             C12(m) = 0.d0
           else if (k == loc) then
              n = n +1
-             C12_nuc(n) = C12(m)
-             J_nuc(n)   = J(m)
+             CA1(n) = C12(m)
+             C12(m) = 0.d0
           end if
        end do
     end do
 
-    ! reshape the J array for the IFF case
-    if (Decotype == "IDFF") then
-       write(*,*)'2B finished...'
-    end if
-   
+    ! creating a temporary array of C12 differences between qubit A and
+    ! all impurity pair
+    m = 0
+    do k=1,nb_imp - 2
+       do l=k + 1,nb_imp - 1
+          m = m + 1
+          DC_tmp(m) = CA1(k) - CA1(l)
+       end do
+    end do
+
+    ! creating a temporary C12 array excluding previous CA1 values
+    C12_tmp = pack (C12, C12 .ne. 0.d0)
+    !write(*,*)C12
+    !write(*,*)C12_tmp
+
+    deallocate (C12, DJ)
+    allocate (C12(Np), DJ(Np))
+
+    ! reset C12, J arrays and nb_pairs for IFF
+    C12      = C12_tmp
+    DJ       = DC_tmp
+    nb_pairs = Np 
+
+    !deallocate (C12)
+    !allocate (C12(nb_imp - 1))
+    !C12 = C12_nuc
+
+    !C12 = C12_nuc
+    !J   = J_nuc
+
+    deallocate(C12_tmp, DC_tmp)
+  
   end subroutine select_nuc
   
-  subroutine DFF (C12_nuc)
+  subroutine DFF (CA1)
     implicit none
-    double precision, intent(in) :: C12_nuc(nb_imp - 1)
+    double precision, intent(in) :: CA1(nb_imp - 1)
     ! Local variables
     integer :: i
     double precision :: dt, t, L_av
@@ -124,7 +162,7 @@ contains
 
     do i=1,nb_pts_t + 1
        t = t + dt       
-       L_pairs = dcos(0.5d0 * C12_nuc * t)
+       L_pairs = dcos(0.5d0 * CA1 * t)
        L_av    = product (L_pairs)
        write(16,fmt)t, abs(L_av)
     end do
@@ -179,7 +217,8 @@ contains
     if (Qubittype == "electron") then
        write(filename, '(a)') "Averaged_decay_electron_IFF.dat"
     else if (Qubittype == "nuclear") then
-       write(filename, '(a)') "Averaged_decay_nuclear_IFF.dat"
+       write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
+                                         Jnuc,"_rad.dat"
     end if
     open(16, file=filename)
 
