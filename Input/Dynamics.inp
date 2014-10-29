@@ -1,8 +1,0 @@
-System type [Donor_Silicon/NV_Diamond]         : Donor_Silicon
-Qubit type [electron, nuclear, mixed]          : nuclear
-Theory type [Pseudospin/CCE2]                  : Pseudospin
-Decoherence type [DFF/IFF/IDFF]                : DFF
-Time window in s [real]                        : 1.D-1
-Nb of points in time grid [integer]            : 1000
-Dynamical decoupling [FID/Hahn/DD]             : FID
-If Qubit type=nuclear, J value in rad/s [real] : 1.D6
