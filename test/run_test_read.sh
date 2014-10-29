@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# copy test input files
 cp ../input/System.inp ../input/System_tmp.inp 
 cp ../input/Dynamics.inp ../input/Dynamics_tmp.inp 
 cp ../input/Output.inp ../input/Output_tmp.inp 
