@@ -50,9 +50,9 @@ SUFFIXES = .exe .o .f90
 
 # Nom de l'exécutable
 
-EXEC = test_read
-#EXEC = test_crystal
-#EXEC = test_interactions
+EXEC1 = test_read
+EXEC2 = test_crystal
+EXEC3 = test_interactions
 #EXEC = test_decoherence
 #EXEC = compare_decoherence
 
@@ -76,9 +76,9 @@ MOD2 = ./Types.o\
 
 # Listes de fichiers sources nécessaires pour le programme final
 
-SRC  = test_read.f90 
-#SRC  = test_crystal.f90 
-#SRC  = test_interactions.f90 
+SRC1  = test_read.f90
+SRC2  = test_crystal.f90 
+SRC3  = test_interactions.f90 
 #SRC  = test_decoherence.f90 
 #SRC  = compare_decoherence.f90 
 
@@ -86,10 +86,14 @@ SRC  = test_read.f90
 # Il s'agit des mêmes objets que ceux source avec une extension
 # .o.
 
-OBJS  = $(MOD2)\
-	$(SRC:.f90=.o)
+OBJS1  = $(MOD2)\
+	$(SRC1:.f90=.o)
+OBJS2  = $(MOD2)\
+	$(SRC2:.f90=.o)
+OBJS3  = $(MOD2)\
+	$(SRC3:.f90=.o)
 
-all: $(EXEC) Class Mrproper
+all: $(EXEC1) $(EXEC2) $(EXEC3) Class Mrproper
  
 # Etape de compilation de tous les fichiers modules .f90 en .o
 
@@ -98,18 +102,25 @@ Modules:
 
 # Etape de compilation de tous les fichiers sources .f90 en .o
 
-Sources:
-	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC) $(PROFLAGS)
+Sources1:
+	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC1) $(PROFLAGS)
+Sources2:
+	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC2) $(PROFLAGS)
+Sources3:
+	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC3) $(PROFLAGS)
+
 
 # Etape d'édition de liens
 
-test_read: Modules Sources 
-#test_crystal: Modules Sources 
-#test_interactions: Modules Sources 
-#test_decoherence : Modules Sources
-#compare_decoherence : Modules Sources
-	@$(COMP) $(DEBUGFLAGS) $(OBJS) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC).exe $(PROFLAGS)
-	@echo "--------Compilation done--------"
+test_read: Modules Sources1 
+	@$(COMP) $(DEBUGFLAGS) $(OBJS1) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC1).exe $(PROFLAGS)
+	@echo "--------Compilation test_read done--------"
+test_crystal: Sources2 
+	@$(COMP) $(DEBUGFLAGS) $(OBJS2) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC2).exe $(PROFLAGS)
+	@echo "--------Compilation test_crystal done--------"
+test_interactions: Sources3 
+	@$(COMP) $(DEBUGFLAGS) $(OBJS3) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC3).exe $(PROFLAGS)
+	@echo "--------Compilation test_interactions done--------"
 
 # Classement des fichiers
 
@@ -123,8 +134,9 @@ Class:
 
 Clean:
 	@rm -rf *.mod
+	@rm -rf *genmod.f90
 
 Mrproper: Clean
-	@rm -rf $(EXEC)
+	@rm -rf $(EXEC1)
 	@echo "-------Data cleaning done-------"
 

@@ -1,8 +1,55 @@
 program test_crystal
+  implicit none
+
+  ! test generate_crystal
+  call test_generate_crystal
+
+  ! test generate_impurities
+  call test_generate_impurities
+
+end program test_crystal
+
+subroutine test_generate_impurities
   use types
   use read
   use crystal
- 
+  implicit none
+  integer :: k,l
+  logical :: test
+
+  lattice%imp = 50.d0
+  call generate_impurities
+
+  test = .true.
+  do k=1,nb_imp
+     if(lattice_imp(k)%x == 0 .and. lattice_imp(k)%y == 0 &
+          .and. lattice_imp(k)%z == 0) then
+        write(*,*)'Impurity on the origin'
+        test = .false.
+     end if
+     do l=k+1,nb_imp
+        if(lattice_imp(k)%x == lattice_imp(l)%x .and. &
+           lattice_imp(k)%y == lattice_imp(l)%y .and. &
+           lattice_imp(k)%z == lattice_imp(l)%z) then
+           write(*,*)'Identical impurities'
+           test = .false. 
+           !write(*,*)'k,l',k,l
+        end if
+     end do
+  end do
+     
+  if (test) then
+     write(*,*)'lattice_imp ok...'
+  else
+     write(*,*)'Pb in lattice_imp...'    
+  end if
+
+end subroutine test_generate_impurities
+
+subroutine test_generate_crystal
+  use types
+  use read
+  use crystal
   implicit none
   integer :: k,l,m,n
   logical :: test
@@ -53,33 +100,5 @@ program test_crystal
      write(*,*)'Pb in lattice_site'
   end if
 
-  ! test generate_impurities
-  lattice%imp = 50.d0
-  call generate_impurities
-
-  test = .true.
-  do k=1,nb_imp
-     if(lattice_imp(k)%x == 0 .and. lattice_imp(k)%y == 0 &
-          .and. lattice_imp(k)%z == 0) then
-        write(*,*)'Impurity on the origin'
-        test = .false.
-     end if
-     do l=k+1,nb_imp
-        if(lattice_imp(k)%x == lattice_imp(l)%x .and. &
-           lattice_imp(k)%y == lattice_imp(l)%y .and. &
-           lattice_imp(k)%z == lattice_imp(l)%z) then
-           write(*,*)'Identical impurities'
-           test = .false. 
-           !write(*,*)'k,l',k,l
-        end if
-     end do
-  end do
-     
-  if (test) then
-     write(*,*)'lattice_imp ok...'
-  else
-     write(*,*)'Pb in lattice_imp...'    
-  end if
-
-end program test_crystal
+end subroutine test_generate_crystal
 

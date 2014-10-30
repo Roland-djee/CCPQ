@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # copy test input files
 cp ../input/System.inp ../input/System_tmp.inp 

@@ -76,7 +76,7 @@ MOD2 = ./Types.o\
 
 # Listes de fichiers sources nécessaires pour le programme final
 
-SRC  = test_read.f90 
+SRC  = test_read.f90
 #SRC  = test_crystal.f90 
 #SRC  = test_interactions.f90 
 #SRC  = test_decoherence.f90 
@@ -115,7 +115,7 @@ test_read: Modules Sources
 
 Class:
 	@mv *.o ../items/.
-	@mv *.exe ../bin/.
+	@mv *.exe ../
 #	@mv *.f90~ ../Save/.
 	@echo "----Data classification done----"
 
