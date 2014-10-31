@@ -171,13 +171,6 @@ contains
     double precision :: L_pairs(nb_pairs)
     character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
    
-    allocate (matrot_u(nb_pairs))
-    allocate (matrot_d(nb_pairs))
-    allocate (matrottrans_u(nb_pairs))
-    allocate (matrottrans_d(nb_pairs))
-    allocate (Zgate_u(nb_pairs), Zgate_d(nb_pairs))
-    allocate (Tu(nb_pairs), Td(nb_pairs))
-    
     ! Compute the eigenenergies for all pairs
     call eigen_energies (eigen_ener)
     
@@ -199,7 +192,7 @@ contains
     case ("FID")
        call FID (eigen_ener, pseudo_angle)
     case ("Hahn")
-       call Hahn
+       call Hahn (eigen_ener, pseudo_angle)
     case ("DD")
        write(*,*)"To be finished..."
        stop
@@ -207,11 +200,29 @@ contains
        write(*,*)"No valid Dynamical decoupling type in Dynamics.inp" 
        stop
     end select
+   
+  end subroutine IFF
+  
+  subroutine Hahn (eigen_ener, pseudo_angle)
+    implicit none
+    double precision, intent(in) :: eigen_ener(nb_pairs)
+    double precision, intent(in) :: pseudo_angle(nb_pairs)
+    ! Local variables and arrays
+
+    allocate (matrot_u(nb_pairs))
+    allocate (matrot_d(nb_pairs))
+    allocate (matrottrans_u(nb_pairs))
+    allocate (matrottrans_d(nb_pairs))
+    allocate (Zgate_u(nb_pairs), Zgate_d(nb_pairs))
+    allocate (Tu(nb_pairs), Td(nb_pairs))
+    
+
 
     ! Compute rotation matrices for all pairs in up/down states
     !call rotmat (pseudo_angle, matrot_u, matrottrans_u)
     !call rotmat (-pseudo_angle, matrot_d, matrottrans_d)
 
+    
     !open(16, file='FID_Check.dat')
 
     ! Loop over time window
@@ -251,17 +262,15 @@ contains
     !end do
     !close(16)
 
+
+
     deallocate (matrot_u)
     deallocate (matrot_d)
     deallocate (matrottrans_u)
     deallocate (matrottrans_d)
     deallocate (Zgate_u, Zgate_d)
     deallocate (Tu, Td)
-    
-  end subroutine IFF
-  
-  subroutine Hahn
-    implicit none
+
 
   end subroutine Hahn
 
