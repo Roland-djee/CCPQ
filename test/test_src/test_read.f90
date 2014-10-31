@@ -72,7 +72,7 @@ subroutine test_decoherence_inputs
      write(*,*)'Problem in Donor_Silicon'
      test = .false.
   end if
-  if (Qubittype == 'electron') then
+  if (Qubittype == 'nuclear') then
      write(*,*)'Qubittype ok...'
   else
      write(*,*)'Problem in Qubittype'
@@ -102,10 +102,28 @@ subroutine test_decoherence_inputs
      write(*,*)'Problem in nb_pts_t'
      test = .false.
   end if
-  if (Dynadeco == 'FID') then
+  if (Dynadeco == 'Hahn') then
      write(*,*)'Dynadeco ok...'
   else
      write(*,*)'Problem in Dynadeco'
+     test = .false.
+  end if
+  if (Tau == 0.5D0) then
+     write(*,*)'Tau ok...'
+  else
+     write(*,*)'Problem in Tau'
+     test = .false.
+  end if
+  if (Tau == 0.5D0) then
+     write(*,*)'Tau ok...'
+  else
+     write(*,*)'Problem in Tau'
+     test = .false.
+  end if
+  if (Jnuc == 1.D6) then
+     write(*,*)'Jnuc ok...'
+  else
+     write(*,*)'Problem in Jnuc'
      test = .false.
   end if
 
