@@ -66,8 +66,8 @@ contains
           call IFF
        end if
      case default
-       write(*,*)"No valid Decoherence type in Dynamics.inp" 
-       stop
+        write(*,*)"No valid Decoherence type in Dynamics.inp" 
+        stop
     end select
   
   end subroutine pseudo
@@ -82,7 +82,6 @@ contains
     double precision, allocatable :: DC_tmp(:)
 
     Np = (nb_imp - 1) * (nb_imp - 2) / 2
-
     allocate(C12_tmp(Np), DC_tmp(Np))
   
     ! locate the nearest impurity to the input J value
@@ -120,8 +119,6 @@ contains
 
     ! creating a temporary C12 array excluding previous CA1 values
     C12_tmp = pack (C12, C12 .ne. 0.d0)
-    !write(*,*)C12
-    !write(*,*)C12_tmp
 
     deallocate (C12, DJ)
     allocate (C12(Np), DJ(Np))
@@ -130,13 +127,6 @@ contains
     C12      = C12_tmp
     DJ       = DC_tmp
     nb_pairs = Np 
-
-    !deallocate (C12)
-    !allocate (C12(nb_imp - 1))
-    !C12 = C12_nuc
-
-    !C12 = C12_nuc
-    !J   = J_nuc
 
     deallocate(C12_tmp, DC_tmp)
   
@@ -174,14 +164,13 @@ contains
     implicit none
     ! Local variables and arrays
     integer :: i, j
-    double precision :: dt, t, L
-    character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
-    character(len=100) :: filename
+    double precision :: L
 
     double precision :: eigen_ener(nb_pairs)
     double precision :: pseudo_angle(nb_pairs)
     double precision :: L_pairs(nb_pairs)
-    
+    character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
+   
     allocate (matrot_u(nb_pairs))
     allocate (matrot_d(nb_pairs))
     allocate (matrottrans_u(nb_pairs))
@@ -206,54 +195,61 @@ contains
     !   end do
     !end do
 
+    select case (Dynadeco)
+    case ("FID")
+       call FID (eigen_ener, pseudo_angle)
+    case ("Hahn")
+       call Hahn
+    case ("DD")
+       write(*,*)"To be finished..."
+       stop
+    case default
+       write(*,*)"No valid Dynamical decoupling type in Dynamics.inp" 
+       stop
+    end select
+
     ! Compute rotation matrices for all pairs in up/down states
-    call rotmat (pseudo_angle, matrot_u, matrottrans_u)
-    call rotmat (-pseudo_angle, matrot_d, matrottrans_d)
+    !call rotmat (pseudo_angle, matrot_u, matrottrans_u)
+    !call rotmat (-pseudo_angle, matrot_d, matrottrans_d)
+
+    !open(16, file='FID_Check.dat')
 
     ! Loop over time window
-    dt = Tmax / dble(nb_pts_t)
-    t  = - dt
-        
-    if (Qubittype == "electron") then
-       write(filename, '(a)') "Averaged_decay_electron_IFF.dat"
-    else if (Qubittype == "nuclear") then
-       write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
-                                         Jnuc,"_rad.dat"
-    end if
-    open(16, file=filename)
+    !dt = Tmax / dble(nb_pts_t)
+    !t  = - dt
+    !do j=1,nb_pts_t + 1
+    !   t = t + dt
 
-    do j=1,nb_pts_t + 1
-       t = t + dt
        ! Compute Zgates for all pairs in up/down states
-       call Z_gate (eigen_ener, t, Zgate_u)
-       call Z_gate (eigen_ener, t, Zgate_d)
+    !   call Z_gate (eigen_ener, t, Zgate_u)
+    !   call Z_gate (eigen_ener, t, Zgate_d)
 
        ! work out transition matrices in up/down states
        ! and compute the decoherence
-       do i=1,nb_pairs
+    !   do i=1,nb_pairs
           ! rotate to eigenbasis and propagate
-          Tu(i)%elements = matmul(Zgate_u(i)%elements, matrot_u(i)%elements)
+    !      Tu(i)%elements = matmul(Zgate_u(i)%elements, matrot_u(i)%elements)
           ! rotate back to bath basis
-          Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
+    !      Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
           ! Idem down state
-          Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
-          Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
+    !      Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
+    !      Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
           ! Decoherence from initial |down-up> bath state
-          L_pairs(i) = abs(conjg(Td(i)%elements(1, 1)) * Tu(i)%elements(1, 1) &
-                         + conjg(Td(i)%elements(2, 1)) * Tu(i)%elements(2, 1))
-
+    !      L_pairs(i) = abs(conjg(Td(i)%elements(1, 1)) * Tu(i)%elements(1, 1) &
+    !           + conjg(Td(i)%elements(2, 1)) * Tu(i)%elements(2, 1))
+          
           ! average over the bath states
-          L_pairs(i) = 0.5d0 + 0.5d0 * L_pairs(i)
-       end do
+    !      L_pairs(i) = 0.5d0 + 0.5d0 * L_pairs(i)
+    !   end do
 
        ! Final decay as the product over all pair decays
-       L = product(L_pairs) 
-       ! write the output
-       write(16, fmt)t, L
-    end do
-    close(16)
+    !   L = product(L_pairs) 
+       
+       !write the output
+    !   write(16, fmt)t, L
 
-    !print*,'L',L_t
+    !end do
+    !close(16)
 
     deallocate (matrot_u)
     deallocate (matrot_d)
@@ -263,6 +259,56 @@ contains
     deallocate (Tu, Td)
     
   end subroutine IFF
+  
+  subroutine Hahn
+    implicit none
+
+  end subroutine Hahn
+
+  subroutine FID (eigen_ener, pseudo_angle)
+    implicit none
+    double precision, intent(in) :: eigen_ener(nb_pairs)
+    double precision, intent(in) :: pseudo_angle(nb_pairs)
+    ! Local variables and arrays
+    integer :: i
+    double precision :: dt, t, L_av
+    double precision :: A(nb_pairs), B(nb_pairs), C(nb_pairs)
+    double precision :: cos_t(nb_pairs), sin_t(nb_pairs)
+    double precision :: L(nb_pairs)
+    character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
+    character(len=100) :: filename
+
+    if (Qubittype == "electron") then
+       write(filename, '(a)') "Averaged_decay_electron_IFF_FID.dat"
+    else if (Qubittype == "nuclear") then
+       write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
+                                         Jnuc,"_rad_FID.dat"
+    end if
+    open(16, file=filename)
+
+    ! Loop over time window
+    dt = Tmax / dble(nb_pts_t)
+    t  = - dt
+
+    do i=1,nb_pts_t + 1
+       t = t + dt
+       A = dcos(eigen_ener * t)
+       C = dsin(eigen_ener * t)
+       cos_t = dcos(pseudo_angle/2.d0)
+       sin_t = dsin(pseudo_angle/2.d0)
+       B = C * (sin_t**2 - cos_t**2)
+
+       ! Decoherence
+       L = abs(A**2 + B**2 - (2.d0 * cos_t * sin_t * C)**2)
+       ! Average decoherence over bath states
+       L = 0.5d0 + 0.5d0 * L
+       ! Product over all pairs
+       L_av = product(L)
+       write(16, fmt)t, L_av    
+    end do   
+    close(16)
+
+  end subroutine FID
 
   subroutine Z_gate (eigen_ener, t, Zgate)
     implicit none
