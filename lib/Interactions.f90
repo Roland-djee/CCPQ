@@ -16,27 +16,24 @@ contains
     call hyperfine
 
     ! set the prefactor for the dipolar interaction
-    select case (Qubittype)
-    case ("electron")
-       pref = pref_e
-     case ("nuclear")
-       pref = pref_n
-    case ("mixed")
-       write(*,*)"To be continued..." 
-       stop
-    case default
-       write(*,*)"No valid Qubit type in Dynamics.inp" 
-       stop
-    end select
+    !select case (Qubittype)
+    !case ("electron")
+    !case ("nuclear")
+    !case ("mixed")
+    !   write(*,*)"To be continued..." 
+    !   stop
+    !case default
+    !   write(*,*)"No valid Qubit type in Dynamics.inp" 
+    !   stop
+    !end select
        
     ! calculate dipolar coupling values between all impurity pairs
-    call dipolar (pref)
+    call dipolar
     
   end subroutine couplings
 
-  subroutine dipolar (pref)
+  subroutine dipolar
     implicit none    
-    double precision, intent(in) :: pref
     ! Local variables and arrays
     integer :: i, j, k
     double precision :: Orient_norm
