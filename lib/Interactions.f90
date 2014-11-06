@@ -7,7 +7,6 @@ contains
 
   subroutine couplings
     implicit none
-    double precision :: pref
  
     ! define the number of impurity pairs
     nb_pairs = nb_imp * (nb_imp - 1) / 2
