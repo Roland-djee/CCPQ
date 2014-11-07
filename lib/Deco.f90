@@ -11,10 +11,10 @@ contains
     ! set the polarisation of the qubit under study
     select case (Qubittype)
     case ("electron")
-       polar_up = 0.5d0
+       polar_up   = 0.5d0
        polar_down = -0.5d0
     case ("nuclear")
-       polar_up = 0.5d0
+       polar_up   = 0.5d0
        polar_down = -0.5d0
     case ("mixed")
        write(*,*)"To be continued..." 
@@ -183,9 +183,10 @@ contains
        call FID (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
                  pseudo_angle_down)
     case ("Hahn")
+       CP_seq = 1
        call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
-                 pseudo_angle_down)
-    case ("DD")
+                 pseudo_angle_down, CP_seq)
+    case ("CP")
        write(*,*)"To be finished..."
        stop
     case default
@@ -196,14 +197,15 @@ contains
   end subroutine IFF
   
   subroutine Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
-                   pseudo_angle_down)
+                   pseudo_angle_down, CP_seq)
     implicit none
+    integer, intent(in) :: CP_seq
     double precision, intent(in) :: eigen_ener_up(nb_pairs)
     double precision, intent(in) :: eigen_ener_down(nb_pairs)
     double precision, intent(in) :: pseudo_angle_up(nb_pairs)
     double precision, intent(in) :: pseudo_angle_down(nb_pairs)
     ! Local variables and arrays
-    integer :: i, j
+    integer :: i, j, k
     double precision :: t, dt, L
     character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
     character(len=100) :: filename
@@ -231,15 +233,25 @@ contains
 
     ! Loop over time window, t correponds now to 2 * Tau
     ! Tau being the pi-pulse duration 
+
     dt = Tmax / dble(nb_pts_t)
     t  = - dt
+    
+    ! Initialize identity matrices
+    Tud%elements(1,1) = dcmplx(1.d0, 0.d0)
+    Tud%elements(1,2) = dcmplx(0.d0, 0.d0)
+    Tud%elements(2,1) = dcmplx(0.d0, 0.d0)
+    Tud%elements(2,2) = dcmplx(1.d0, 0.d0)
+    Tdu%elements(1,1) = dcmplx(1.d0, 0.d0)
+    Tdu%elements(1,2) = dcmplx(0.d0, 0.d0)
+    Tdu%elements(2,1) = dcmplx(0.d0, 0.d0)
+    Tdu%elements(2,2) = dcmplx(1.d0, 0.d0)
 
     do j=1,nb_pts_t + 1
        t = t + dt
-
        ! Compute Zgates for all pairs in up/down states
-       call Z_gate (eigen_ener_up, t / 2.d0, Zgate_u)
-       call Z_gate (eigen_ener_down, t / 2.d0, Zgate_d)
+       call Z_gate (eigen_ener_up, t / dble(CP_seq + 1), Zgate_u)
+       call Z_gate (eigen_ener_down, t / dble(CP_seq + 1), Zgate_d)
 
        ! work out transition matrices in up/down states
        ! and compute the decoherence
@@ -252,8 +264,23 @@ contains
           Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
           Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
 
-          Tud(i)%elements = matmul(Tu(i)%elements, Td(i)%elements)
-          Tdu(i)%elements = matmul(Td(i)%elements, Tu(i)%elements)
+          if (mod(CP_seq, 2) == 0) then
+             
+             Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
+             Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
+             Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
+             Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
+
+          else
+             do k=1,CP_seq
+                Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
+                Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
+                Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
+                Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
+             end do
+          end if
+
+          
 
           ! Decoherence from initial |down-up> bath state
           L_pairs(i) = abs(conjg(Tdu(i)%elements(1, 1))*Tud(i)%elements(1, 1) &
