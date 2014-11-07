@@ -57,7 +57,7 @@ contains
     read(Dynamics, fmt3) Tmax
     read(Dynamics, fmt2) nb_pts_t
     read(Dynamics, fmt4) Dynadeco
-    if (Dynadeco == "Hahn" .or. Dynadeco == "DD") read(Dynamics, fmt3) Tau
+    if (Dynadeco == "CP") read(Dynamics, fmt3) CP_seq
     if (Qubittype == "nuclear") read(Dynamics, fmt3) Jnuc
     close(Dynamics)
 
