@@ -42,9 +42,5 @@ module types
   type rot
      double complex    :: elements(2, 2) 
   end type rot
-  type (rot), allocatable :: matrot_u(:), matrottrans_u(:)
-  type (rot), allocatable :: matrot_d(:), matrottrans_d(:)
-  type (rot), allocatable :: Zgate_u(:), Zgate_d(:)
-  type (rot), allocatable :: Tu(:), Td(:)
 
 end module types
