@@ -8,7 +8,7 @@ module types
   integer :: origin
 
   integer :: nb_pts_t
-  double precision :: Tmax, Tau, polar, Jnuc
+  double precision :: Tmax, Tau, polar_up, polar_down, Jnuc
 
   logical :: crys_sites
   logical :: crys_imp
