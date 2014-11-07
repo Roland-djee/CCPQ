@@ -203,69 +203,74 @@ contains
     double precision, intent(in) :: pseudo_angle_up(nb_pairs)
     double precision, intent(in) :: pseudo_angle_down(nb_pairs)
     ! Local variables and arrays
+    integer :: i, j
+    double precision :: t, dt, L
+    character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
+    character(len=100) :: filename
 
-    allocate (matrot_u(nb_pairs))
-    allocate (matrot_d(nb_pairs))
-    allocate (matrottrans_u(nb_pairs))
-    allocate (matrottrans_d(nb_pairs))
-    allocate (Zgate_u(nb_pairs), Zgate_d(nb_pairs))
-    allocate (Tu(nb_pairs), Td(nb_pairs))
+    type (rot) :: matrot_u(nb_pairs), matrottrans_u(nb_pairs)
+    type (rot) :: matrot_d(nb_pairs), matrottrans_d(nb_pairs)
+    type (rot) :: Zgate_u(nb_pairs), Zgate_d(nb_pairs)
+    type (rot) :: Tu(nb_pairs), Td(nb_pairs)
+    type (rot) :: Tud(nb_pairs), Tdu(nb_pairs)
+
+    double precision :: L_pairs(nb_pairs)
+
     
+    ! Initialize rotation matrices for all pairs in up/down states
+    call rotmat (pseudo_angle_up, matrot_u, matrottrans_u)
+    call rotmat (pseudo_angle_down, matrot_d, matrottrans_d)
 
+    if (Qubittype == "electron") then
+       write(filename, '(a)') "Averaged_decay_electron_IFF_Hahn.dat"
+    else if (Qubittype == "nuclear") then
+       write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
+                                         Jnuc,"_rad_Hahn.dat"
+    end if
+    open(16, file=filename)
 
-    ! Compute rotation matrices for all pairs in up/down states
-    !call rotmat (pseudo_angle, matrot_u, matrottrans_u)
-    !call rotmat (-pseudo_angle, matrot_d, matrottrans_d)
+    ! Loop over time window, t correponds now to 2 * Tau
+    ! Tau being the pi-pulse duration 
+    dt = Tmax / dble(nb_pts_t)
+    t  = - dt
 
-    
-    !open(16, file='FID_Check.dat')
-
-    ! Loop over time window
-    !dt = Tmax / dble(nb_pts_t)
-    !t  = - dt
-    !do j=1,nb_pts_t + 1
-    !   t = t + dt
+    do j=1,nb_pts_t + 1
+       t = t + dt
 
        ! Compute Zgates for all pairs in up/down states
-    !   call Z_gate (eigen_ener, t, Zgate_u)
-    !   call Z_gate (eigen_ener, t, Zgate_d)
+       call Z_gate (eigen_ener_up, t / 2.d0, Zgate_u)
+       call Z_gate (eigen_ener_down, t / 2.d0, Zgate_d)
 
        ! work out transition matrices in up/down states
        ! and compute the decoherence
-    !   do i=1,nb_pairs
+       do i=1,nb_pairs
           ! rotate to eigenbasis and propagate
-    !      Tu(i)%elements = matmul(Zgate_u(i)%elements, matrot_u(i)%elements)
+          Tu(i)%elements = matmul(Zgate_u(i)%elements, matrot_u(i)%elements)
           ! rotate back to bath basis
-    !      Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
+          Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
           ! Idem down state
-    !      Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
-    !      Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
+          Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
+          Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
+
+          Tud(i)%elements = matmul(Tu(i)%elements, Td(i)%elements)
+          Tdu(i)%elements = matmul(Td(i)%elements, Tu(i)%elements)
+
           ! Decoherence from initial |down-up> bath state
-    !      L_pairs(i) = abs(conjg(Td(i)%elements(1, 1)) * Tu(i)%elements(1, 1) &
-    !           + conjg(Td(i)%elements(2, 1)) * Tu(i)%elements(2, 1))
+          L_pairs(i) = abs(conjg(Tdu(i)%elements(1, 1))*Tud(i)%elements(1, 1) &
+               - Tdu(i)%elements(1, 2) * Tud(i)%elements(2, 1))
           
           ! average over the bath states
-    !      L_pairs(i) = 0.5d0 + 0.5d0 * L_pairs(i)
-    !   end do
+          L_pairs(i) = 0.5d0 + 0.5d0 * L_pairs(i)
+       end do
 
        ! Final decay as the product over all pair decays
-    !   L = product(L_pairs) 
+       L = product(L_pairs) 
        
        !write the output
-    !   write(16, fmt)t, L
+       write(16, fmt)t, L
 
-    !end do
-    !close(16)
-
-
-
-    deallocate (matrot_u)
-    deallocate (matrot_d)
-    deallocate (matrottrans_u)
-    deallocate (matrottrans_d)
-    deallocate (Zgate_u, Zgate_d)
-    deallocate (Tu, Td)
-
+    end do
+    close(16)
 
   end subroutine Hahn
 
