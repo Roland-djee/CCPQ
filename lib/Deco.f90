@@ -166,32 +166,17 @@ contains
   subroutine IFF
     implicit none
     ! Local variables and arrays
-    integer :: i, j
-    double precision :: L
-
+ 
     double precision :: eigen_ener_up(nb_pairs)
     double precision :: eigen_ener_down(nb_pairs)
     double precision :: pseudo_angle_up(nb_pairs)
     double precision :: pseudo_angle_down(nb_pairs)
-    double precision :: L_pairs(nb_pairs)
-    character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
    
     ! Compute the eigenenergies for all pairs
     call eigen_energies (eigen_ener_up, eigen_ener_down)
     
     ! Compute the pseudospin angles for all pairs in up/down qubit states
     call pseudo_angles (pseudo_angle_up, pseudo_angle_down)
-
-    !open(17, file='eigen_energies.dat')
-    !open(18, file='pseudo_angles.dat')
-    !m = 0
-    !do k=1,nb_imp - 1
-    !   do l1=k + 1,nb_imp
-    !      m = m + 1
-    !      write(17,fmt)eigen_ener(m)
-    !      write(18,fmt)pseudo_angle(m)
-    !   end do
-    !end do
 
     select case (Dynadeco)
     case ("FID")
@@ -294,8 +279,11 @@ contains
     ! Local variables and arrays
     integer :: i
     double precision :: dt, t, L_av
-    double precision :: A(nb_pairs), B(nb_pairs), C(nb_pairs)
-    double precision :: cos_t(nb_pairs), sin_t(nb_pairs)
+    double precision :: a_u(nb_pairs), b_u(nb_pairs)
+    double precision :: c_u(nb_pairs), d_u(nb_pairs)
+    double precision :: a_d(nb_pairs), b_d(nb_pairs)
+    double precision :: c_d(nb_pairs), d_d(nb_pairs)
+    double complex   :: z_u(nb_pairs), z_d(nb_pairs)
     double precision :: L(nb_pairs)
     character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
     character(len=100) :: filename
@@ -312,16 +300,24 @@ contains
     dt = Tmax / dble(nb_pts_t)
     t  = - dt
 
+    ! Initialize matrices
+    a_u = dcos(pseudo_angle_up/2.d0)
+    b_u = dsin(pseudo_angle_up/2.d0)
+    a_d = dcos(pseudo_angle_down/2.d0)
+    b_d = dsin(pseudo_angle_down/2.d0)
+
     do i=1,nb_pts_t + 1
        t = t + dt
-       A = dcos(eigen_ener_up * t)
-       C = dsin(eigen_ener_up * t)
-       cos_t = dcos(pseudo_angle_up/2.d0)
-       sin_t = dsin(pseudo_angle_up/2.d0)
-       B = C * (sin_t**2 - cos_t**2)
+       c_u = dcos(eigen_ener_up * t)
+       d_u = dsin(eigen_ener_up * t)
+       c_d = dcos(eigen_ener_down * t)
+       d_d = dsin(eigen_ener_down * t)
+
+       z_u = dcmplx(c_u, d_u * (b_u**2 - a_u**2))
+       z_d = dcmplx(c_d, - d_d * (b_d**2 - a_d**2))
 
        ! Decoherence
-       L = abs(A**2 + B**2 - (2.d0 * cos_t * sin_t * C)**2)
+       L = abs(z_d * z_u  + 4.d0 * a_u * a_d * b_u * b_d * d_u * d_d)
        ! Average decoherence over bath states
        L = 0.5d0 + 0.5d0 * L
        ! Product over all pairs
@@ -371,21 +367,16 @@ contains
   subroutine pseudo_angles (pseudo_angle_up, pseudo_angle_down)
     implicit none
     ! Local arrays
-    integer :: i
     double precision, intent(out) :: pseudo_angle_up(nb_pairs)
     double precision, intent(out) :: pseudo_angle_down(nb_pairs)
 
     ! Array of pseudospin angles
     pseudo_angle_up   = datan (abs(C12 / (polar_up * DJ)))
-    !print*, 'pseudo_angle_up',(pseudo_angle_up(i),i=1,nb_pairs)
-    !print*, 'C12 / (polar_up * DJ)',C12 / (polar_up * DJ)
     pseudo_angle_down = datan (abs(C12 / (polar_down * DJ)))
     where (C12 / (polar_up * DJ) .lt. 0.d0) &
          pseudo_angle_up = pi - pseudo_angle_up
     where (C12 / (polar_down * DJ) .lt. 0.d0) &
          pseudo_angle_down = pi - pseudo_angle_down
-    !print*, 'pseudo_angle_up',(pseudo_angle_up(i),i=1,nb_pairs)
-    !stop
 
   end subroutine pseudo_angles
 
@@ -398,7 +389,6 @@ contains
     ! Array of eigenenergies
     eigen_ener_up   = 0.25d0 * dsqrt(C12**2 + (polar_up * DJ)**2)
     eigen_ener_down = 0.25d0 * dsqrt(C12**2 + (polar_down * DJ)**2)
-    !print*, 'eigen_ener',eigen_ener  
 
   end subroutine eigen_energies
 
