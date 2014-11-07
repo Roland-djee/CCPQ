@@ -18,8 +18,11 @@ contains
     open(14,file='C12.dat')
     open(15,file='J.dat')
     open(16,file='couplings.dat')
-
+    
+    ! Headers
     write(14,fmt0)"# Coordinates spin 1 Coordinates spin 2 C12"
+    write(15,fmt0)"# Coordinates spin 1 Coordinates spin 2 J1 J2 DJ"
+    write(16,fmt0)"# C12 J1 J2"
 
     m = 0
     do k=1,nb_imp - 1
