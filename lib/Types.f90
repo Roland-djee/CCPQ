@@ -7,7 +7,7 @@ module types
   integer :: nb_basisvec, nb_sites, nb_imp, nb_pairs
   integer :: origin
 
-  integer :: nb_pts_t, P_seq
+  integer :: nb_pts_t, CP_seq
   double precision :: Tmax
   double precision :: polar_up, polar_down
   double precision :: Jnuc
