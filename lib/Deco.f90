@@ -266,7 +266,7 @@ contains
        ! Final decay as the product over all pair decays
        L = product(L_pairs) 
        
-       !write the output
+       ! write the output
        write(16, fmt)t, L
 
     end do
