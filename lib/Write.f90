@@ -2,6 +2,7 @@ module write
   use types
   implicit none
   ! writing formats
+  character (len=*), parameter :: fmt0 = "(a)"
   character (len=*), parameter :: fmt1 = "(i5, i5, i5)"
   character (len=*), parameter :: fmt2 = "(i5, i5, i5, i5, i5, i5, es20.10e3)"
   character (len=*), parameter :: fmt3 = "(i5, i5, i5, i5, i5, i5, es20.10e3,&
@@ -17,6 +18,8 @@ contains
     open(14,file='C12.dat')
     open(15,file='J.dat')
     open(16,file='couplings.dat')
+
+    write(14,fmt0)"# Coordinates spin 1 Coordinates spin 2 C12"
 
     m = 0
     do k=1,nb_imp - 1
