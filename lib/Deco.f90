@@ -1,5 +1,6 @@
 module deco
   use types
+  use constants
   implicit none
 
 contains
@@ -10,9 +11,11 @@ contains
     ! set the polarisation of the qubit under study
     select case (Qubittype)
     case ("electron")
-       polar = 0.5d0
+       polar_up = 0.5d0
+       polar_down = -0.5d0
     case ("nuclear")
-       polar = 0.5d0
+       polar_up = 0.5d0
+       polar_down = -0.5d0
     case ("mixed")
        write(*,*)"To be continued..." 
        stop
@@ -166,16 +169,18 @@ contains
     integer :: i, j
     double precision :: L
 
-    double precision :: eigen_ener(nb_pairs)
-    double precision :: pseudo_angle(nb_pairs)
+    double precision :: eigen_ener_up(nb_pairs)
+    double precision :: eigen_ener_down(nb_pairs)
+    double precision :: pseudo_angle_up(nb_pairs)
+    double precision :: pseudo_angle_down(nb_pairs)
     double precision :: L_pairs(nb_pairs)
     character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
    
     ! Compute the eigenenergies for all pairs
-    call eigen_energies (eigen_ener)
+    call eigen_energies (eigen_ener_up, eigen_ener_down)
     
-    ! Compute the pseudospin angles for all pairs
-    call pseudo_angles (pseudo_angle)
+    ! Compute the pseudospin angles for all pairs in up/down qubit states
+    call pseudo_angles (pseudo_angle_up, pseudo_angle_down)
 
     !open(17, file='eigen_energies.dat')
     !open(18, file='pseudo_angles.dat')
@@ -190,9 +195,11 @@ contains
 
     select case (Dynadeco)
     case ("FID")
-       call FID (eigen_ener, pseudo_angle)
+       call FID (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                 pseudo_angle_down)
     case ("Hahn")
-       call Hahn (eigen_ener, pseudo_angle)
+       call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                 pseudo_angle_down)
     case ("DD")
        write(*,*)"To be finished..."
        stop
@@ -203,10 +210,13 @@ contains
    
   end subroutine IFF
   
-  subroutine Hahn (eigen_ener, pseudo_angle)
+  subroutine Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                   pseudo_angle_down)
     implicit none
-    double precision, intent(in) :: eigen_ener(nb_pairs)
-    double precision, intent(in) :: pseudo_angle(nb_pairs)
+    double precision, intent(in) :: eigen_ener_up(nb_pairs)
+    double precision, intent(in) :: eigen_ener_down(nb_pairs)
+    double precision, intent(in) :: pseudo_angle_up(nb_pairs)
+    double precision, intent(in) :: pseudo_angle_down(nb_pairs)
     ! Local variables and arrays
 
     allocate (matrot_u(nb_pairs))
@@ -274,10 +284,13 @@ contains
 
   end subroutine Hahn
 
-  subroutine FID (eigen_ener, pseudo_angle)
+  subroutine FID (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                  pseudo_angle_down)
     implicit none
-    double precision, intent(in) :: eigen_ener(nb_pairs)
-    double precision, intent(in) :: pseudo_angle(nb_pairs)
+    double precision, intent(in) :: eigen_ener_up(nb_pairs)
+    double precision, intent(in) :: eigen_ener_down(nb_pairs)
+    double precision, intent(in) :: pseudo_angle_up(nb_pairs)
+    double precision, intent(in) :: pseudo_angle_down(nb_pairs)
     ! Local variables and arrays
     integer :: i
     double precision :: dt, t, L_av
@@ -301,10 +314,10 @@ contains
 
     do i=1,nb_pts_t + 1
        t = t + dt
-       A = dcos(eigen_ener * t)
-       C = dsin(eigen_ener * t)
-       cos_t = dcos(pseudo_angle/2.d0)
-       sin_t = dsin(pseudo_angle/2.d0)
+       A = dcos(eigen_ener_up * t)
+       C = dsin(eigen_ener_up * t)
+       cos_t = dcos(pseudo_angle_up/2.d0)
+       sin_t = dsin(pseudo_angle_up/2.d0)
        B = C * (sin_t**2 - cos_t**2)
 
        ! Decoherence
@@ -355,24 +368,36 @@ contains
 
   end subroutine rotmat
 
-  subroutine pseudo_angles (pseudo_angle)
+  subroutine pseudo_angles (pseudo_angle_up, pseudo_angle_down)
     implicit none
     ! Local arrays
-    double precision, intent(out) :: pseudo_angle(nb_pairs)
+    integer :: i
+    double precision, intent(out) :: pseudo_angle_up(nb_pairs)
+    double precision, intent(out) :: pseudo_angle_down(nb_pairs)
 
     ! Array of pseudospin angles
-    pseudo_angle = datan (C12 / (polar*DJ))
-    !print*, 'pseudo_angle',(pseudo_angle(i),i=1,nb_pairs)
-    
+    pseudo_angle_up   = datan (abs(C12 / (polar_up * DJ)))
+    !print*, 'pseudo_angle_up',(pseudo_angle_up(i),i=1,nb_pairs)
+    !print*, 'C12 / (polar_up * DJ)',C12 / (polar_up * DJ)
+    pseudo_angle_down = datan (abs(C12 / (polar_down * DJ)))
+    where (C12 / (polar_up * DJ) .lt. 0.d0) &
+         pseudo_angle_up = pi - pseudo_angle_up
+    where (C12 / (polar_down * DJ) .lt. 0.d0) &
+         pseudo_angle_down = pi - pseudo_angle_down
+    !print*, 'pseudo_angle_up',(pseudo_angle_up(i),i=1,nb_pairs)
+    !stop
+
   end subroutine pseudo_angles
 
-  subroutine eigen_energies (eigen_ener)
+  subroutine eigen_energies (eigen_ener_up, eigen_ener_down)
     implicit none
     ! Local arrays
-    double precision, intent(out) :: eigen_ener(nb_pairs)
+    double precision, intent(out) :: eigen_ener_up(nb_pairs)
+    double precision, intent(out) :: eigen_ener_down(nb_pairs)
     
     ! Array of eigenenergies
-    eigen_ener = 0.25d0 * dsqrt(C12**2 + (polar*DJ)**2)
+    eigen_ener_up   = 0.25d0 * dsqrt(C12**2 + (polar_up * DJ)**2)
+    eigen_ener_down = 0.25d0 * dsqrt(C12**2 + (polar_down * DJ)**2)
     !print*, 'eigen_ener',eigen_ener  
 
   end subroutine eigen_energies
