@@ -102,22 +102,17 @@ subroutine test_decoherence_inputs
      write(*,*)'Problem in nb_pts_t'
      test = .false.
   end if
-  if (Dynadeco == 'Hahn') then
+  if (Dynadeco == 'CP') then
      write(*,*)'Dynadeco ok...'
   else
      write(*,*)'Problem in Dynadeco'
      test = .false.
   end if
-  if (Tau == 0.5D0) then
-     write(*,*)'Tau ok...'
+  if (CP_seq == 2) then
+     write(*,*)'CP_seq ok...'
   else
-     write(*,*)'Problem in Tau'
-     test = .false.
-  end if
-  if (Tau == 0.5D0) then
-     write(*,*)'Tau ok...'
-  else
-     write(*,*)'Problem in Tau'
+     write(*,*)'Problem in CP_seq'
+     write(*,*)CP_seq
      test = .false.
   end if
   if (Jnuc == 1.D6) then
