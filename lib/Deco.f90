@@ -187,8 +187,8 @@ contains
        call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
                  pseudo_angle_down, CP_seq)
     case ("CP")
-       write(*,*)"To be finished..."
-       stop
+       call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                 pseudo_angle_down, CP_seq)
     case default
        write(*,*)"No valid Dynamical decoupling type in Dynamics.inp" 
        stop
@@ -217,17 +217,26 @@ contains
     type (rot) :: Tud(nb_pairs), Tdu(nb_pairs)
 
     double precision :: L_pairs(nb_pairs)
-
     
     ! Initialize rotation matrices for all pairs in up/down states
     call rotmat (pseudo_angle_up, matrot_u, matrottrans_u)
     call rotmat (pseudo_angle_down, matrot_d, matrottrans_d)
 
     if (Qubittype == "electron") then
-       write(filename, '(a)') "Averaged_decay_electron_IFF_Hahn.dat"
+       if (Dynadeco == "Hahn") then
+          write(filename, '(a)') "Averaged_decay_electron_IFF_Hahn.dat"
+       else if (Dynadeco == "CP") then
+          write(filename, '(a, i1, a)') "Averaged_decay_electron_IFF_CP",&
+               CP_seq,".dat"
+       end if
     else if (Qubittype == "nuclear") then
-       write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
+       if (Dynadeco == "Hahn") then
+          write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
                                          Jnuc,"_rad_Hahn.dat"
+       else if (Dynadeco == "CP") then
+          write(filename, '(a, es10.3e3, a, i1, a)') "Averaged_decay_nuclear_IFF_J=",&
+                                         Jnuc,"_rad_CP",CP_seq,".dat"
+       end if
     end if
     open(16, file=filename)
 
@@ -264,23 +273,23 @@ contains
           Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
           Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
 
-          if (mod(CP_seq, 2) == 0) then
-             
+          if (mod(CP_seq, 2) == 0) then             
+             do k=1, CP_seq / 2
+                Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
+                Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
+                Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
+                Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
+             end do
              Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
-             Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
              Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
-             Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
-
           else
-             do k=1,CP_seq
+             do k=1, (CP_seq + 1) / 2
                 Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
                 Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
                 Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
                 Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
              end do
           end if
-
-          
 
           ! Decoherence from initial |down-up> bath state
           L_pairs(i) = abs(conjg(Tdu(i)%elements(1, 1))*Tud(i)%elements(1, 1) &
