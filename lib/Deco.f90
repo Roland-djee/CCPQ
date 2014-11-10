@@ -215,6 +215,7 @@ contains
     type (rot) :: Zgate_u(nb_pairs), Zgate_d(nb_pairs)
     type (rot) :: Tu(nb_pairs), Td(nb_pairs)
     type (rot) :: Tud(nb_pairs), Tdu(nb_pairs)
+    type (rot) :: Tfu(nb_pairs), Tfd(nb_pairs)
 
     double precision :: L_pairs(nb_pairs)
     
@@ -231,11 +232,11 @@ contains
        end if
     else if (Qubittype == "nuclear") then
        if (Dynadeco == "Hahn") then
-          write(filename, '(a, es10.3e3, a)') "Averaged_decay_nuclear_IFF_J=",&
-                                         Jnuc,"_rad_Hahn.dat"
+          write(filename, '(a, es10.3e3, a)') &
+               "Averaged_decay_nuclear_IFF_J=",Jnuc,"_rad_Hahn.dat"
        else if (Dynadeco == "CP") then
-          write(filename, '(a, es10.3e3, a, i1, a)') "Averaged_decay_nuclear_IFF_J=",&
-                                         Jnuc,"_rad_CP",CP_seq,".dat"
+          write(filename, '(a, es10.3e3, a, i1, a)') &
+               "Averaged_decay_nuclear_IFF_J=",Jnuc,"_rad_CP",CP_seq,".dat"
        end if
     end if
     open(16, file=filename)
@@ -245,22 +246,22 @@ contains
 
     dt = Tmax / dble(nb_pts_t)
     t  = - dt
-    
-    ! Initialize identity matrices
-    Tud%elements(1,1) = dcmplx(1.d0, 0.d0)
-    Tud%elements(1,2) = dcmplx(0.d0, 0.d0)
-    Tud%elements(2,1) = dcmplx(0.d0, 0.d0)
-    Tud%elements(2,2) = dcmplx(1.d0, 0.d0)
-    Tdu%elements(1,1) = dcmplx(1.d0, 0.d0)
-    Tdu%elements(1,2) = dcmplx(0.d0, 0.d0)
-    Tdu%elements(2,1) = dcmplx(0.d0, 0.d0)
-    Tdu%elements(2,2) = dcmplx(1.d0, 0.d0)
 
+    ! Initialize identity matrices
+    Tfu%elements(1,1) = dcmplx(1.d0, 0.d0)
+    Tfu%elements(1,2) = dcmplx(0.d0, 0.d0)
+    Tfu%elements(2,1) = dcmplx(0.d0, 0.d0)
+    Tfu%elements(2,2) = dcmplx(1.d0, 0.d0)
+    Tfd%elements(1,1) = dcmplx(1.d0, 0.d0)
+    Tfd%elements(1,2) = dcmplx(0.d0, 0.d0)
+    Tfd%elements(2,1) = dcmplx(0.d0, 0.d0)
+    Tfd%elements(2,2) = dcmplx(1.d0, 0.d0)
+    
     do j=1,nb_pts_t + 1
        t = t + dt
        ! Compute Zgates for all pairs in up/down states
-       call Z_gate (eigen_ener_up, t / dble(CP_seq + 1), Zgate_u)
-       call Z_gate (eigen_ener_down, t / dble(CP_seq + 1), Zgate_d)
+       call Z_gate (eigen_ener_up, t / dble(2 * CP_seq), Zgate_u)
+       call Z_gate (eigen_ener_down, t / dble(2 * CP_seq), Zgate_d)
 
        ! work out transition matrices in up/down states
        ! and compute the decoherence
@@ -273,23 +274,19 @@ contains
           Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
           Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
 
-          if (mod(CP_seq, 2) == 0) then             
-             do k=1, CP_seq / 2
-                Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
-                Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
-                Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
-                Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
-             end do
-             Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
-             Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
-          else
-             do k=1, (CP_seq + 1) / 2
-                Tud(i)%elements = matmul(Tud(i)%elements, Tu(i)%elements)
-                Tud(i)%elements = matmul(Tud(i)%elements, Td(i)%elements)
-                Tdu(i)%elements = matmul(Tdu(i)%elements, Td(i)%elements)
-                Tdu(i)%elements = matmul(Tdu(i)%elements, Tu(i)%elements)
-             end do
-          end if
+          ! Initialize Tud and Tdu
+          Tud(i)%elements = matmul(Tu(i)%elements, Td(i)%elements)
+          Tdu(i)%elements = matmul(Td(i)%elements, Tu(i)%elements)
+
+          do k=1,CP_seq
+             if(mod(k, 2) .ne. 0) then
+                Tfu(i)%elements = matmul(Tfu(i)%elements, Tud(i)%elements)
+                Tfd(i)%elements = matmul(Tfd(i)%elements, Tdu(i)%elements)
+             else if(mod(k, 2) == 0) then
+                Tfu(i)%elements = matmul(Tfu(i)%elements, Tdu(i)%elements)
+                Tfd(i)%elements = matmul(Tfd(i)%elements, Tud(i)%elements)
+             end if
+          end do
 
           ! Decoherence from initial |down-up> bath state
           L_pairs(i) = abs(conjg(Tdu(i)%elements(1, 1))*Tud(i)%elements(1, 1) &
