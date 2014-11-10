@@ -375,10 +375,10 @@ contains
     double complex :: phase(nb_pairs)
     
     phase = dcmplx(0.d0, eigen_ener)
-    Zgate%elements(1, 1) = exp(-phase*t)
+    Zgate%elements(1, 1) = exp(- phase * t)
     Zgate%elements(1, 2) = dcmplx(0.d0, 0.d0)
     Zgate%elements(2, 1) = dcmplx(0.d0, 0.d0)
-    Zgate%elements(2, 2) = exp(phase*t)
+    Zgate%elements(2, 2) = exp(phase * t)
         
   end subroutine Z_gate
 
@@ -389,8 +389,8 @@ contains
     type (rot), intent(out) :: matrottrans(nb_pairs)
     
     ! set all 2x2 elements matrix components
-    matrot%elements(1, 1) = dcmplx(dcos(pseudo_angle/2.d0), 0.d0) 
-    matrot%elements(1, 2) = dcmplx(dsin(pseudo_angle/2.d0), 0.d0) 
+    matrot%elements(1, 1) = dcmplx(dcos(pseudo_angle * 0.5d0), 0.d0) 
+    matrot%elements(1, 2) = dcmplx(dsin(pseudo_angle * 0.5d0), 0.d0) 
     matrot%elements(2, 1) = -matrot%elements(1, 2)
     matrot%elements(2, 2) = matrot%elements(1, 1)
 
