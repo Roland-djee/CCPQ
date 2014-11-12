@@ -1,6 +1,106 @@
-CCPQ Decoherence project
+Decoherence CCPQ project
 ========================
+
 This code is intended to calculate the decoherence of spin systems
 under the influence of a bath of other spins.
-Last modified version 11/12/2014.
+***Last modified version 11/12/2014***
 r.guichard@ucl.ac.uk
+
+Decoherence - Fortran library for spin decoherence
+==================================================
+
+Solves for the many-body dynamics of a central spin system coupled to
+an interacting spin bath.
+
+- Includes special methods for donor qubits in silicon.
+- Includes executable for CPMG dephasing (T2) of donors in silicon
+interacting with 29Si nuclear impurities (nuclear spin diffusion).
+
+Installation
+============
+
+Requirements:
+
+- Intel or GNU fortran compiler
+
+The following instructions are for a Unix-like environment
+without root privileges.
+
+In a terminal,
+
+```sh
+mkdir Decoherence
+cd Decoherence
+git clone http://www.github/UCLGuichard/CCPQ
+```
+
+This gets the code. Now let's build it.
+
+```sh
+cd src
+makefile
+```
+
+If all went well, you should now have the three messages
+
+--------Compilation done--------
+----Data classification done----
+-------Data cleaning done-------
+
+It creates an executable file in the ./bin folder.
+
+***Decoherence has been tested on Linux***
+
+Usage
+-----
+
+Run the executable Decoherence.exe in the ./bin folder.
+It takes the arguments defined by the files 
+
+System.inp
+Dynamics.inp
+Output.inp
+
+in the ./input file
+
+Example
+-------
+
+Getting help
+------------
+
+License
+=======
+
+See LICENSE file for more details.
+
+Citation
+========
+
+See CITATION file for more details.
+
+Version
+=======
+
+2.0 (in progress)
+
+History
+=======
+
+Decoherence is based on bits and pieces of old code for certain spin baths
+and central spin systems. These were written by R. Guichard starting
+in 2014. Methods used to efficiently fill Hamiltonian matrix elements
+were originally written in Fortran by Prof. Tania Monteiro.
+
+Acknowledgements
+================
+
+- Prof. Tania Monteiro
+- Setrak Balian
+
+Contact
+=======
+
+[Roland Guichard] - <r.guichard@ucl.ac.uk>
+
+
