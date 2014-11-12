@@ -241,8 +241,8 @@ contains
     end if
     open(16, file=filename)
 
-    ! Loop over time window, t correponds now to 2 * Tau
-    ! Tau being the pi-pulse duration 
+    ! Loop over time window, t correponds now to 2 * CP_seq
+    ! CP_seq being the number of pi-pulses in the Carr-Purcell sequence
 
     dt = Tmax / dble(nb_pts_t)
     t  = - dt
@@ -339,10 +339,10 @@ contains
     t  = - dt
 
     ! Initialize matrices
-    a_u = dcos(pseudo_angle_up/2.d0)
-    b_u = dsin(pseudo_angle_up/2.d0)
-    a_d = dcos(pseudo_angle_down/2.d0)
-    b_d = dsin(pseudo_angle_down/2.d0)
+    a_u = dcos(pseudo_angle_up * 0.5d0)
+    b_u = dsin(pseudo_angle_up * 0.5d0)
+    a_d = dcos(pseudo_angle_down * 0.5d0)
+    b_d = dsin(pseudo_angle_down * 0.5d0)
 
     do i=1,nb_pts_t + 1
        t = t + dt
