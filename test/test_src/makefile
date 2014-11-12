@@ -53,7 +53,7 @@ SUFFIXES = .exe .o .f90
 EXEC1 = test_read
 EXEC2 = test_crystal
 EXEC3 = test_interactions
-#EXEC = test_decoherence
+EXEC4 = test_decoherence
 #EXEC = compare_decoherence
 
 # Liste des fichiers modules nécessaires pour le programme final
@@ -79,7 +79,7 @@ MOD2 = ./Types.o\
 SRC1  = test_read.f90
 SRC2  = test_crystal.f90 
 SRC3  = test_interactions.f90 
-#SRC  = test_decoherence.f90 
+SRC4  = test_decoherence.f90 
 #SRC  = compare_decoherence.f90 
 
 # Liste de fichiers objets nécessaires pour le programme final.
@@ -92,8 +92,10 @@ OBJS2  = $(MOD2)\
 	$(SRC2:.f90=.o)
 OBJS3  = $(MOD2)\
 	$(SRC3:.f90=.o)
+OBJS4  = $(MOD2)\
+	$(SRC4:.f90=.o)
 
-all: $(EXEC1) $(EXEC2) $(EXEC3) Class Mrproper
+all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4) Class Mrproper
  
 # Etape de compilation de tous les fichiers modules .f90 en .o
 
@@ -108,7 +110,8 @@ Sources2:
 	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC2) $(PROFLAGS)
 Sources3:
 	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC3) $(PROFLAGS)
-
+Sources4:
+	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC4) $(PROFLAGS)
 
 # Etape d'édition de liens
 
@@ -121,6 +124,9 @@ test_crystal: Sources2
 test_interactions: Sources3 
 	@$(COMP) $(DEBUGFLAGS) $(OBJS3) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC3).exe $(PROFLAGS)
 	@echo "--------Compilation test_interactions done--------"
+test_decoherence: Sources4 
+	@$(COMP) $(DEBUGFLAGS) $(OBJS4) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC4).exe $(PROFLAGS)
+	@echo "--------Compilation test_decoherence done--------"
 
 # Classement des fichiers
 
