@@ -1,10 +1,10 @@
 Decoherence CCPQ project
 ========================
 
-This code is intended to calculate the decoherence of spin systems
-under the influence of a bath of other spins.
-***Last modified version 11/12/2014***
-r.guichard@ucl.ac.uk
+This code is intended to calculate the decoherence of central 
+spin systems entangled with a bath of spin imputities.
+
+***Last modified version 12/11/2014***
 
 Decoherence - Fortran library for spin decoherence
 ==================================================
@@ -12,9 +12,9 @@ Decoherence - Fortran library for spin decoherence
 Solves for the many-body dynamics of a central spin system coupled to
 an interacting spin bath.
 
-- Includes special methods for donor qubits in silicon.
-- Includes executable for CPMG dephasing (T2) of donors in silicon
-interacting with 29Si nuclear impurities (nuclear spin diffusion).
+- Includes the generation of a crystal structure.
+- Includes special methods for decoherence of electron/nuclear qubits.
+- Includes sequence of CPMG pulses.
 
 Installation
 ============
@@ -38,7 +38,7 @@ This gets the code. Now let's build it.
 
 ```sh
 cd src
-makefile
+make
 ```
 
 If all went well, you should now have the three messages
@@ -47,6 +47,8 @@ If all went well, you should now have the three messages
 ----Data classification done----
 -------Data cleaning done-------
 
+You may wish to modify the makefile to adapt to your own
+system.
 It creates an executable file in the ./bin folder.
 
 ***Decoherence has been tested on Linux***
@@ -57,11 +59,11 @@ Usage
 Run the executable Decoherence.exe in the ./bin folder.
 It takes the arguments defined by the files 
 
-System.inp
-Dynamics.inp
-Output.inp
+System.inp      ! Sets the properties of the crystal structure
+Dynamics.inp    ! Sets the dynamics
+Output.inp	! Sets the outputs
 
-in the ./input file
+in the ./input folder. Modify them for your own purposes.
 
 Example
 -------
