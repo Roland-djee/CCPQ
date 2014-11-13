@@ -246,22 +246,22 @@ contains
 
     dt = Tmax / dble(nb_pts_t)
     t  = - dt
-
-    ! Initialize identity matrices
-    Tfu%elements(1,1) = dcmplx(1.d0, 0.d0)
-    Tfu%elements(1,2) = dcmplx(0.d0, 0.d0)
-    Tfu%elements(2,1) = dcmplx(0.d0, 0.d0)
-    Tfu%elements(2,2) = dcmplx(1.d0, 0.d0)
-    Tfd%elements(1,1) = dcmplx(1.d0, 0.d0)
-    Tfd%elements(1,2) = dcmplx(0.d0, 0.d0)
-    Tfd%elements(2,1) = dcmplx(0.d0, 0.d0)
-    Tfd%elements(2,2) = dcmplx(1.d0, 0.d0)
     
     do j=1,nb_pts_t + 1
        t = t + dt
        ! Compute Zgates for all pairs in up/down states
        call Z_gate (eigen_ener_up, t / dble(2 * CP_seq), Zgate_u)
        call Z_gate (eigen_ener_down, t / dble(2 * CP_seq), Zgate_d)
+
+       ! Initialize identity matrices
+       Tfu%elements(1,1) = dcmplx(1.d0, 0.d0)
+       Tfu%elements(1,2) = dcmplx(0.d0, 0.d0)
+       Tfu%elements(2,1) = dcmplx(0.d0, 0.d0)
+       Tfu%elements(2,2) = dcmplx(1.d0, 0.d0)
+       Tfd%elements(1,1) = dcmplx(1.d0, 0.d0)
+       Tfd%elements(1,2) = dcmplx(0.d0, 0.d0)
+       Tfd%elements(2,1) = dcmplx(0.d0, 0.d0)
+       Tfd%elements(2,2) = dcmplx(1.d0, 0.d0)
 
        ! work out transition matrices in up/down states
        ! and compute the decoherence
@@ -278,19 +278,19 @@ contains
           Tud(i)%elements = matmul(Tu(i)%elements, Td(i)%elements)
           Tdu(i)%elements = matmul(Td(i)%elements, Tu(i)%elements)
 
-          do k=1,CP_seq
-             if(mod(k, 2) .ne. 0) then
+         do k=1,CP_seq
+             if(modulo(k, 2) .ne. 0) then
                 Tfu(i)%elements = matmul(Tfu(i)%elements, Tud(i)%elements)
                 Tfd(i)%elements = matmul(Tfd(i)%elements, Tdu(i)%elements)
-             else if(mod(k, 2) == 0) then
+             else if(modulo(k, 2) == 0) then
                 Tfu(i)%elements = matmul(Tfu(i)%elements, Tdu(i)%elements)
                 Tfd(i)%elements = matmul(Tfd(i)%elements, Tud(i)%elements)
              end if
           end do
 
           ! Decoherence from initial |down-up> bath state
-          L_pairs(i) = abs(conjg(Tdu(i)%elements(1, 1))*Tud(i)%elements(1, 1) &
-               - Tdu(i)%elements(1, 2) * Tud(i)%elements(2, 1))
+          L_pairs(i) = abs(conjg(Tfd(i)%elements(1, 1))*Tfu(i)%elements(1, 1) &
+               - Tfd(i)%elements(1, 2) * Tfu(i)%elements(2, 1))
           
           ! average over the bath states
           L_pairs(i) = 0.5d0 + 0.5d0 * L_pairs(i)
