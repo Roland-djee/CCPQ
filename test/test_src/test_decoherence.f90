@@ -17,7 +17,189 @@ program test_decoherence
   ! test FID
   call test_FID
 
+  ! test Hahn
+  call test_Hahn
+
 end program test_decoherence
+
+subroutine test_Hahn
+  use types
+  use deco
+  implicit none
+
+  integer :: i,k
+  double precision :: t, t2, dt, L
+  double precision, allocatable :: eigen_ener_up(:)
+  double precision, allocatable :: eigen_ener_down(:)
+  double precision, allocatable :: pseudo_angle_up(:)
+  double precision, allocatable :: pseudo_angle_down(:)
+  double precision, allocatable :: L_pairs(:)
+  double precision, allocatable :: A_0(:), Ax(:), Ay(:), Az(:), A_02(:)
+  double precision, allocatable :: Axu2(:), Axl2(:), Azu2(:), Azl2(:)
+  double precision, allocatable :: theta_uf(:), theta_lf(:), eps(:)
+  character(len=100) :: filename
+
+  nb_pairs = 5
+
+  allocate (eigen_ener_up(nb_pairs), eigen_ener_down(nb_pairs))
+  allocate (pseudo_angle_up(nb_pairs), pseudo_angle_down(nb_pairs))
+  allocate (A_0(nb_pairs), Ax(nb_pairs), A_02(nb_pairs))
+  allocate (Ay(nb_pairs), Az(nb_pairs))
+  allocate (L_pairs(nb_pairs))
+  allocate (Axu2(nb_pairs), Axl2(nb_pairs), Azu2(nb_pairs), Azl2(nb_pairs))
+  allocate (theta_uf(nb_pairs), theta_lf(nb_pairs), eps(nb_pairs))
+
+  eigen_ener_up = (/(i, i=1,nb_pairs)/)
+  eigen_ener_down = (/(i/2.d0, i=1,nb_pairs)/)
+  pseudo_angle_up = (/(i**2, i=1,nb_pairs)/)
+  pseudo_angle_down = (/(i**3, i=1,nb_pairs)/)
+
+  Qubittype = "electron"
+  Dynadeco  = "Hahn"
+  CP_seq    = 1
+  Tmax = 10.d0
+  nb_pts_t = 1000
+
+  call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                   pseudo_angle_down, CP_seq)
+
+  write(filename, '(a)') "Averaged_decay_electron_IFF_Hahn_test.dat"
+  open(16, file=filename)
+
+  dt = Tmax / dble(nb_pts_t)
+  t  = - dt
+
+  do k=1,nb_pts_t + 1
+     t = t + dt
+     t2 = t / 2.d0
+     A_0 = cos(eigen_ener_up * t2) * cos(eigen_ener_down * t2)
+     A_0 = A_0 - sin(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          cos(pseudo_angle_up - pseudo_angle_down)
+     Ax = cos(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          sin(pseudo_angle_down) 
+     Ax = Ax + cos(eigen_ener_down * t2) * sin(eigen_ener_up * t2) * &
+          sin(pseudo_angle_up)
+     Ay = - sin(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          sin(pseudo_angle_up - pseudo_angle_down)
+     Az = cos(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          cos(pseudo_angle_down) 
+     Az = Az + cos(eigen_ener_down * t2) * sin(eigen_ener_up * t2) * &
+          cos(pseudo_angle_up)
+
+     L_pairs = abs(1.d0 - 2.d0 * Ay**2 + 2.d0 * dcmplx(0.d0, Ax * Ay))
+     L_pairs = 0.5d0 + 0.5d0 * L_pairs
+     
+     L = product(L_pairs)
+     write(16, "(es20.10e3, es20.10e3)")t, L
+  end do
+  close(16)
+     
+  write(*,*) "Both Averaged_decay_electron_IFF_Hahn.dat and Averaged_decay_electron_IFF_Hahn_test.dat are ready to be compared..."
+
+
+  Qubittype = "electron"
+  Dynadeco  = "CP"
+  CP_seq    = 2
+
+  call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                   pseudo_angle_down, CP_seq)
+
+  write(filename, '(a)') "Averaged_decay_electron_IFF_CP2_test.dat"
+  open(16, file=filename)
+
+  t  = - dt
+  do k=1,nb_pts_t + 1
+     t = t + dt
+     t2 = t / 4.d0
+     A_0 = cos(eigen_ener_up * t2) * cos(eigen_ener_down * t2)
+     A_0 = A_0 - sin(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          cos(pseudo_angle_up - pseudo_angle_down)
+     Ax = cos(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          sin(pseudo_angle_down) 
+     Ax = Ax + cos(eigen_ener_down * t2) * sin(eigen_ener_up * t2) * &
+          sin(pseudo_angle_up)
+     Ay = - sin(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          sin(pseudo_angle_up - pseudo_angle_down)
+     Az = cos(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          cos(pseudo_angle_down) 
+     Az = Az + cos(eigen_ener_down * t2) * sin(eigen_ener_up * t2) * &
+          cos(pseudo_angle_up)
+
+     L_pairs = abs(1.d0 - 8.d0 * Ay**2 * (Ax**2 + Az**2) &
+          + 4.d0 * dcmplx(0.d0, 1.d0) * (1.d0 - 2.d0 * (Ax**2 + Az**2)) * &
+          Ax * Ay)
+     L_pairs = 0.5d0 + 0.5d0 * L_pairs
+     
+     L = product(L_pairs)
+     write(16, "(es20.10e3, es20.10e3)")t, L
+  end do
+  close(16)
+     
+  write(*,*) "Both Averaged_decay_electron_IFF_CP2.dat and Averaged_decay_electron_IFF_CP2_test.dat are ready to be compared..."
+
+  Qubittype = "electron"
+  Dynadeco  = "CP"
+  CP_seq    = 6
+
+  call Hahn (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
+                   pseudo_angle_down, CP_seq)
+
+  write(filename, '(a)') "Averaged_decay_electron_IFF_CP6_test.dat"
+  open(16, file=filename)
+
+  t  = - dt
+  do k=1,nb_pts_t + 1
+     t = t + dt
+     t2 = t / 12.d0
+     A_0 = cos(eigen_ener_up * t2) * cos(eigen_ener_down * t2)
+     A_0 = A_0 - sin(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          cos(pseudo_angle_up - pseudo_angle_down)
+     Ax = cos(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          sin(pseudo_angle_down) 
+     Ax = Ax + cos(eigen_ener_down * t2) * sin(eigen_ener_up * t2) * &
+          sin(pseudo_angle_up)
+     Ay = - sin(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          sin(pseudo_angle_up - pseudo_angle_down)
+     Az = cos(eigen_ener_up * t2) * sin(eigen_ener_down * t2) * &
+          cos(pseudo_angle_down) 
+     Az = Az + cos(eigen_ener_down * t2) * sin(eigen_ener_up * t2) * &
+          cos(pseudo_angle_up)
+
+     A_02 = 1.d0 - 2.d0 * (Ax**2 + Az**2)
+     Axu2 = 2.d0 * (Ax * A_0 - Ay * Az)
+     Axl2 = 2.d0 * (Ax * A_0 + Ay * Az)
+     Azu2 = 2.d0 * (Az * A_0 + Ax * Ay)
+     Azl2 = 2.d0 * (Az * A_0 - Ax * Ay)
+
+     eps = acos(A_02)
+
+     theta_uf = atan2(Axu2 , Azu2)
+     theta_lf = atan2(Axl2 , Azl2)
+     
+
+     L_pairs = 1.d0 - sin((theta_uf - theta_lf)/2.d0)**2 * &
+          (1.d0 - cos(6.d0 * eps))
+     L_pairs = abs(L_pairs + dcmplx(0.d0,1.d0) * sin(6.d0 * eps) * &
+          sin((theta_uf - theta_lf)/2.d0) * sin((theta_uf + theta_lf)/2.d0))
+
+     L_pairs = 0.5d0 + 0.5d0 * L_pairs
+     
+     L = product(L_pairs)
+     write(16, "(es20.10e3, es20.10e3)")t, L
+  end do
+  close(16)
+     
+  write(*,*) "Both Averaged_decay_electron_IFF_CP6.dat and Averaged_decay_electron_IFF_CP6_test.dat are ready to be compared..."
+  
+  deallocate (eigen_ener_up, eigen_ener_down)
+  deallocate (pseudo_angle_up, pseudo_angle_down)
+  deallocate (A_0, Ax)
+  deallocate (Ay, Az)
+  deallocate (L_pairs)
+  deallocate (Axu2, Axl2, Azu2, Azl2)
+  deallocate (theta_uf, theta_lf, eps)
+
+end subroutine test_Hahn
 
 subroutine test_FID
   use types
@@ -116,9 +298,17 @@ subroutine test_FID
      write(16, "(es20.10e3, es20.10e3)")t, L
 
   end do
+  close(16)
 
   write(*,*) "Both Averaged_decay_electron_IFF_FID.dat and Averaged_decay_electron_IFF_FID_test.dat are ready to be compared..."
-  
+
+  deallocate (eigen_ener_up, eigen_ener_down)
+  deallocate (pseudo_angle_up, pseudo_angle_down)
+  deallocate (matrot_u, matrottrans_u)
+  deallocate (matrot_d, matrottrans_d)
+  deallocate (Zgate_u, Zgate_d)
+  deallocate (Tu, Td, L_pairs)
+
 end subroutine test_FID
 
 subroutine test_Z_gate
