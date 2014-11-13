@@ -31,13 +31,13 @@ In a terminal,
 ```sh
 mkdir Decoherence
 cd Decoherence
-git clone http://www.github/UCLGuichard/CCPQ
+git clone git@github.com:UCLGuichard/CCPQ.git
 ```
 
 This gets the code. Now let's build it.
 
 ```sh
-cd src
+cd CCPQ/src
 make
 ```
 
@@ -64,6 +64,35 @@ Dynamics.inp    ! Sets the dynamics
 Output.inp	! Sets the outputs
 
 in the ./input folder. Modify them for your own purposes.
+
+Testing
+-------
+
+There are two types of testings: unit testing and case testing.
+
+- Unit testing: go in the unit_test/test_src/ folder and run make
+You should have the following messages
+
+--------Compilation test_read done--------
+--------Compilation test_crystal done--------
+--------Compilation test_interactions done--------
+--------Compilation test_decoherence done--------
+----Data classification done----
+-------Data cleaning done-------
+
+Then go to ./unit_test you can now run a serie of unit testing
+for all subroutines and modules:
+
+```sh
+bash ./bash ./run_test_read.sh
+./test_crystal.exe
+./test_interactions.exe
+./test_decoherence.exe
+```sh
+
+It should display a list of testings with 'ok' statements.
+Otherwise, it generates output .dat and _test.dat files
+calculated by two different methods that must be identical. 
 
 Example
 -------
