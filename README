@@ -84,7 +84,7 @@ Then go to ./unit_test you can now run a serie of unit testing
 for all subroutines and modules:
 
 ```sh
-bash ./bash ./run_test_read.sh
+bash ./run_test_read.sh
 ./test_crystal.exe
 ./test_interactions.exe
 ./test_decoherence.exe
