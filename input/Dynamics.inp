@@ -4,6 +4,6 @@ Theory type [Pseudospin/CCE2]                  : Pseudospin
 Decoherence type [DFF/IFF/IDFF]                : IFF
 Time window in s [real]                        : 1.D0
 Nb of points in time grid [integer]            : 1000
-Dynamical decoupling [FID/Hahn/CP]             : Hahn
-If Dyna. decoupling=CP pulse sequence [integer]: 2
+Dynamical decoupling [FID/Hahn/CP]             : CP
+If Dyna. decoupling=CP pulse sequence [integer]: 6
 If Qubit type=nuclear, J value in rad/s [real] : 1.D6
