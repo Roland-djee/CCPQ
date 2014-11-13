@@ -132,7 +132,7 @@ subroutine test_hyperfine
   do i=1,nb_imp - 1
      do k=i + 1,nb_imp
         l = l + 1
-        if (abs(DJ(l) - (J_test(i) - J_test(k)) ) .ne. 0.d0) test = .false.
+        if (abs(DJ(l) - (J_test(i) - J_test(k)) ) .gt. 1.d-10) test = .false.
      end do
   end do
 
