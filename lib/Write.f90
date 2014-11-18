@@ -20,9 +20,10 @@ contains
     open(16,file='couplings.dat')
     
     ! Headers
-    write(14,fmt0)"# Coordinates spin 1 Coordinates spin 2 C12"
-    write(15,fmt0)"# Coordinates spin 1 Coordinates spin 2 J1 J2 DJ"
-    write(16,fmt0)"# C12 J1 J2"
+    write(14,fmt0)"# Coordinates spin 1 [n1,n2,n3] Coordinates spin 2 C12 [rad]"
+    write(15,fmt0)"# Coordinates spin 1 [n1,n2,n3] Coordinates spin 2 &
+         [n1,n2,n3] J1 J2 DJ [rad]"
+    write(16,fmt0)"# J1 J2 C12 [rad]"
 
     m = 0
     do k=1,nb_imp - 1
@@ -34,7 +35,7 @@ contains
           write(15,fmt3)lattice_imp(k)%x, lattice_imp(k)%y, lattice_imp(k)%z,&
                         lattice_imp(l)%x, lattice_imp(l)%y, lattice_imp(l)%z,&
                         J(k), J(l), DJ(m)       
-          write(16, "(es20.10e3, es20.10e3, es20.10e3)")C12(m), J(k), J(l)
+          write(16, "(es20.10e3, es20.10e3, es20.10e3)")J(k), J(l), C12(m)
        end do
     end do
     close(14)
