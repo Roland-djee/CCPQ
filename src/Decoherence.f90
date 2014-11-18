@@ -31,7 +31,7 @@ program decoherence
   ! Write impurities ouputs
   if (crys_imp) call impurities_ouputs
 
-  write(*,*)'Outputs written if needed...'
+  if (crys_sites .or. crys_imp) write(*,*)'Outputs written...'
 
   !======= DECOHERENCE DYNAMICS ========
 
@@ -47,8 +47,7 @@ program decoherence
 
   ! Write coupling values
   if (coup_val) call couplings_outputs
-
-  write(*,*)'Couplings written if needed...'
+  if (coup_val) write(*,*)'Couplings written...'
   
   ! Calculate decoherence
   call decohere
