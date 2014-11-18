@@ -117,5 +117,5 @@ Mrproper: Clean
 	@echo "-------Data cleaning done-------"
 
 data:
-	@rm ../bin/*.dat
+	@rm ../bin/*.dat*
 
