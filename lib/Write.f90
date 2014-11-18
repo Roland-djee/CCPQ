@@ -20,10 +20,11 @@ contains
     open(16,file='couplings.dat')
     
     ! Headers
-    write(14,fmt0)"# Coordinates spin 1 [n1,n2,n3] Coordinates spin 2 C12 [rad]"
+    write(14,fmt0)"# Coordinates spin 1 [n1,n2,n3] Coordinates spin 2 &
+         C12 [rad/s]"
     write(15,fmt0)"# Coordinates spin 1 [n1,n2,n3] Coordinates spin 2 &
-         [n1,n2,n3] J1 J2 DJ [rad]"
-    write(16,fmt0)"# J1 J2 C12 [rad]"
+         [n1,n2,n3] J1 J2 DJ [rad/s]"
+    write(16,fmt0)"# J1 J2 C12 [rad/s]"
 
     m = 0
     do k=1,nb_imp - 1
