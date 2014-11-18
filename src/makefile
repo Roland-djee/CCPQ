@@ -116,3 +116,6 @@ Mrproper: Clean
 	@rm -rf $(EXEC)
 	@echo "-------Data cleaning done-------"
 
+data:
+	@rm ../bin/*.dat
+
