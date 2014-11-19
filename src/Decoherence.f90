@@ -29,7 +29,7 @@ program decoherence
   ! Write crystal ouputs
   if (crys_sites) call crystal_ouputs
   ! Write impurities ouputs
-  if (crys_imp) call impurities_ouputs
+  if (crys_imp)   call impurities_ouputs
 
   if (crys_sites .or. crys_imp) write(*,*)'Outputs written...'
 
