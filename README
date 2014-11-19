@@ -147,7 +147,9 @@ Decoherence is based on bits and pieces of old code for certain spin baths
 and central spin systems. These were written by R. Guichard starting
 in 2014. Methods used to efficiently fill Hamiltonian matrix elements
 were originally written in Fortran by Prof. Tania Monteiro. Checking has
-been performed with Setrak Balian's C++ spindec code.
+been performed with Setrak Balian's C++ spindec code:
+
+http://www.bitbucket.org/sbalian/spindec
 
 Acknowledgements
 ================
