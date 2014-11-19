@@ -19,6 +19,29 @@ module write
   
 contains
 
+  subroutine couplings_nuclear_outputs (CA1)
+    implicit none
+    ! local variables
+    integer :: k,l,m  
+    double precision, intent(in) :: CA1(nb_imp - 1)
+    character(len=100) :: filename
+
+    write(filename, '(a, es10.3e3, a)') "couplings_nuclear_J=",Jnuc,"_rad.dat"
+    open(14,file=filename)
+    
+    ! Header
+    write(14, fmt05)"#","CA1","CA2","C12","[rad/s]"
+
+    m = 0
+    do k=1,nb_imp - 2
+       do l=k + 1,nb_imp - 1
+          m = m + 1
+          write(14, fmt4)CA1(k), CA1(l), C12(m)
+       end do
+    end do
+
+  end subroutine couplings_nuclear_outputs
+
   subroutine couplings_outputs
     implicit none
     ! local variables
