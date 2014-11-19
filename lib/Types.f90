@@ -9,6 +9,7 @@ module types
 
   integer :: nb_pts_t, CP_seq
   double precision :: Tmax
+  double precision :: expval_up, expval_down
   double precision :: polar_up, polar_down
   double precision :: Jnuc
 
