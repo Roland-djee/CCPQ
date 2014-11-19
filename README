@@ -4,7 +4,7 @@ Decoherence CCPQ project
 This code is intended to calculate the decoherence of central 
 spin systems entangled with a bath of spin impurities.
 
-***Last modified version 12/11/2014***
+***Last modified version 19/11/2014***
 
 Decoherence - Fortran library for spin decoherence
 ==================================================
@@ -22,6 +22,8 @@ Installation
 Requirements:
 
 - Intel or GNU fortran compiler
+- Git
+- Make
 
 The following instructions are for a Unix-like environment
 without root privileges.
@@ -41,7 +43,7 @@ cd CCPQ/src
 make
 ```
 
-If all went well, you should now have the three messages
+If all went well, you should now have the final three messages
 
 --------Compilation done--------
 ----Data classification done----
@@ -49,7 +51,9 @@ If all went well, you should now have the three messages
 
 You may wish to modify the makefile to adapt to your own
 system.
-It creates an executable file in the ./bin folder.
+It creates an executable file in the ./bin folder that you can run
+with ./Decoherence.exe. It outputs *.dat files which name represents 
+the cases of study.
 
 ***Decoherence has been tested on Linux***
 
@@ -57,7 +61,7 @@ Usage
 -----
 
 Run the executable Decoherence.exe in the ./bin folder.
-It takes the arguments defined by the files 
+It takes the arguments defined in the input files 
 
 System.inp      ! Sets the properties of the crystal structure
 Dynamics.inp    ! Sets the dynamics
@@ -73,14 +77,14 @@ There are two types of testings: unit testing and case testing.
 - Unit testing: go in the unit_test/test_src/ folder and run make
 You should have the following messages
 
---------Compilation test_read done--------
+--------Compilation test_read done-----------
 --------Compilation test_crystal done--------
---------Compilation test_interactions done--------
---------Compilation test_decoherence done--------
-----Data classification done----
--------Data cleaning done-------
+--------Compilation test_interactions done---
+--------Compilation test_decoherence done----
+--------Data classification done-------------
+--------Data cleaning done-------------------
 
-Then go to ./unit_test you can now run a serie of unit testing
+Then go to ./unit_test you can now run a spate of unit testing
 for all subroutines and modules:
 
 ```sh
@@ -91,8 +95,29 @@ bash ./run_test_read.sh
 ```sh
 
 It should display a list of testings with 'ok' statements.
-Otherwise, it generates output .dat and _test.dat files
-calculated by two different methods that must be identical. 
+It also generates output *.dat and *_test.dat files
+calculated by two different methods. You can check that:
+
+* dipolar C12 values are identical between the calculated C12.dat
+and the analytical formula C12_analytical.dat (owing absolute value)
+* decoherence for the FID, Hahn, CP2 and CP6 cases for electron donor
+are identical (numerically calculated by Decoherence and analytically
+computed in the test cases)
+
+- Case testing: go in the ./test/Tania_subroutine folder and run make
+You should have the following messages
+
+--------Compilation test_read done-----------
+--------Data cleaning done-------------------
+
+Then run 
+
+bash ./run_test.sh in the above ./test folder. It runs Decoherence and 
+uses the outputs as input files for the code ROLAND.DD.f90. The comparison
+between the decoherence calculated with the two methods can be checked
+by plotting the output *.dat file in ./bin and the corresponding 
+./Tania_subroutine/CPMGN.dat (owing a factor 1000 in x axis for converting
+units).
 
 Example
 -------
@@ -121,7 +146,8 @@ History
 Decoherence is based on bits and pieces of old code for certain spin baths
 and central spin systems. These were written by R. Guichard starting
 in 2014. Methods used to efficiently fill Hamiltonian matrix elements
-were originally written in Fortran by Prof. Tania Monteiro.
+were originally written in Fortran by Prof. Tania Monteiro. Checking has
+been performed with Setrak Balian's C++ spindec code.
 
 Acknowledgements
 ================
