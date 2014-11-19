@@ -1,6 +1,7 @@
 module deco
   use types
   use constants
+  use write
   implicit none
 
 contains
@@ -11,11 +12,15 @@ contains
     ! set the polarisation of the qubit under study
     select case (Qubittype)
     case ("electron")
-       polar_up   = 0.5d0
-       polar_down = -0.5d0
+       expval_up   =  0.5d0
+       expval_down = -0.5d0
+       polar_up   =  2.d0 * expval_up
+       polar_down =  2.d0 * expval_down
     case ("nuclear")
-       polar_up   = 0.5d0
-       polar_down = -0.5d0
+       expval_up   =  0.5d0
+       expval_down = -0.5d0
+       polar_up   =  2.d0 * expval_up
+       polar_down =  2.d0 * expval_down
     case ("mixed")
        write(*,*)"To be continued..." 
        stop
@@ -103,7 +108,7 @@ contains
              CA1(n) = C12(m)
              C12(m) = 0.d0
           else if (k == loc) then
-             n = n +1
+             n = n + 1
              CA1(n) = C12(m)
              C12(m) = 0.d0
           end if
@@ -130,6 +135,8 @@ contains
     C12      = C12_tmp
     DJ       = DC_tmp
     nb_pairs = Np 
+
+    call couplings_nuclear_outputs (CA1)
 
     deallocate(C12_tmp, DC_tmp)
   
