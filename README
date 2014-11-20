@@ -33,7 +33,7 @@ In a terminal,
 ```sh
 mkdir Decoherence
 cd Decoherence
-git clone git@github.com:UCLGuichard/CCPQ.git
+git clone https://github.com/UCLGuichard/CCPQ
 ```
 
 This gets the code. Now let's build it.
