@@ -45,6 +45,7 @@ mrproper: clean data
 
 clean:
 	@rm -rf *.mod
+	@rm -rf *.o
 	@rm -rf *genmod.f90
 	@rm -rf *.f90~
 data:
