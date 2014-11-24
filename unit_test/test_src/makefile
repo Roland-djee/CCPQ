@@ -141,8 +141,13 @@ Class:
 Clean:
 	@rm -rf *.mod
 	@rm -rf *genmod.f90
+	@rm -rf *.f90~
 
 Mrproper: Clean
 	@rm -rf $(EXEC1)
+	@echo "-------Data cleaning done-------"
+
+Data:
+	@rm -rf ../*.dat
 	@echo "-------Data cleaning done-------"
 
