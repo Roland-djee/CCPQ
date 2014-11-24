@@ -1,29 +1,21 @@
-#############################################################################
-#                                                                           #
-#	MAKEFILE GENERIQUE POUR LA COMPILATION DES CODES FORTRAN            #
-#                                                                           #
-#############################################################################
+#------------- Generic makefile for fortran codes -------------#
 
-# Indiquer quel compilateur est à utiliser
+# compiler flags
 
 COMP = ifort
 #COMP = gfortran
 
-# Spécifier les options du compilateur CFLAG = Compilation FLAGS,
-# WFLAGS = Warning FLAGS, LDFLAGS = Link eDition FLAGS, OPTFLAGS = OPTimizing
-# FLAGS, DEBUGFLAGS = DEBUGging FLAGS, LAPACK = édition de liens avec la 
-# librairie LAPACKS, PROFLAGS = PROfiling FLAGS
-
 # ifort FLAGS
 
 #WFLAGS   = -warn argument checking -check underflow
-WFLAGS   = -C -check all -warn all,nodec,interfaces -gen_interfaces -traceback # available with ifort 
+#WFLAGS   = -C -check all -warn all,nodec,interfaces -gen_interfaces -traceback # available with ifort 
 #WFLAGS   = -check all -warn all -traceback
+WFLAGS     = -nowarn
 #CFLAGS   = -c -g -heap-arrays # available with ifort
 #LAPACK   = -L/usr/atlas/lib -llapack -lblas -lgfortran
 #LAPACK   = -L/usr/lib -llapack -lblas
 #OPTFLAGS = -O3 -mtune=core2
-PARFLAGS = -openmp
+#PARFLAGS = -openmp
 OPTFLAGS = -O3 
 #DEBUGFLAGS = -g # available with ifort
 
@@ -42,13 +34,11 @@ CFLAGS = -c
 LDFLAGS = -o
 #PROFLAGS = -pg
 
-# Reconnaître les Extension de nom de fichier *.out, *.o, .f90 et .h
-# comme suffixe
-
+# Suffixes
 SUFFIXES = .exe .o .f90 
 .SUFFIXES: $(SUFFIXES) .
 
-# Nom de l'exécutable
+# executable
 
 EXEC1 = test_read
 EXEC2 = test_crystal
@@ -56,7 +46,7 @@ EXEC3 = test_interactions
 EXEC4 = test_decoherence
 #EXEC = compare_decoherence
 
-# Liste des fichiers modules nécessaires pour le programme final
+# modules lists
 
 MOD = ../../lib/Types.f90\
 	../../lib/Constants.f90\
@@ -74,17 +64,12 @@ MOD2 = ./Types.o\
 	./Interactions.o\
 	./Deco.o
 
-# Listes de fichiers sources nécessaires pour le programme final
+# source files
 
 SRC1  = test_read.f90
 SRC2  = test_crystal.f90 
 SRC3  = test_interactions.f90 
 SRC4  = test_decoherence.f90 
-#SRC  = compare_decoherence.f90 
-
-# Liste de fichiers objets nécessaires pour le programme final.
-# Il s'agit des mêmes objets que ceux source avec une extension
-# .o.
 
 OBJS1  = $(MOD2)\
 	$(SRC1:.f90=.o)
@@ -96,13 +81,13 @@ OBJS4  = $(MOD2)\
 	$(SRC4:.f90=.o)
 
 all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4) Class Mrproper
- 
-# Etape de compilation de tous les fichiers modules .f90 en .o
+
+# compiling modules
 
 Modules:
 	@$(COMP) $(CFLAGS) $(PARFLAGS) $(WFLAGS) $(MOD) $(PROFLAGS)
 
-# Etape de compilation de tous les fichiers sources .f90 en .o
+# compiling sources
 
 Sources1:
 	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC1) $(PROFLAGS)
@@ -113,7 +98,7 @@ Sources3:
 Sources4:
 	@$(COMP) $(PARFLAGS) $(CFLAGS) $(WFLAGS) $(OPTFLAGS) $(SRC4) $(PROFLAGS)
 
-# Etape d'édition de liens
+# linking
 
 test_read: Modules Sources1 
 	@$(COMP) $(DEBUGFLAGS) $(OBJS1) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC1).exe $(PROFLAGS)
@@ -128,15 +113,15 @@ test_decoherence: Sources4
 	@$(COMP) $(DEBUGFLAGS) $(OBJS4) $(LAPACK) $(PARFLAGS) $(LDFLAGS) $(EXEC4).exe $(PROFLAGS)
 	@echo "--------Compilation test_decoherence done--------"
 
-# Classement des fichiers
+# sorting files
 
 Class:
 	@mv *.o ../items/.
 	@mv *.exe ../
 #	@mv *.f90~ ../Save/.
-	@echo "----Data classification done----"
+	@echo "--------Data classification done----"
 
-# Nettoyage
+# cleaning
 
 Clean:
 	@rm -rf *.mod
@@ -145,9 +130,9 @@ Clean:
 
 Mrproper: Clean
 	@rm -rf $(EXEC1)
-	@echo "-------Data cleaning done-------"
+	@echo "--------Data cleaning done-------"
 
 Data:
 	@rm -rf ../*.dat
-	@echo "-------Data cleaning done-------"
+	@echo "--------Data cleaning done-------"
 
