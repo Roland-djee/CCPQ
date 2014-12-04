@@ -17,6 +17,9 @@ program test_decoherence
   ! test FID
   call test_FID
 
+  ! test matmul_2by2
+  call test_matmul_2by2
+
   ! test Hahn
   call test_Hahn
 
@@ -94,7 +97,9 @@ subroutine test_Hahn
   end do
   close(16)
      
-  write(*,*) "Both Averaged_decay_electron_IFF_Hahn.dat and Averaged_decay_electron_IFF_Hahn_test.dat are ready to be compared..."
+  write(*,*) "Both Averaged_decay_electron_IFF_Hahn.dat and &
+       Averaged_decay_electron_IFF_Hahn_test.dat are ready &
+       to be compared..."
 
 
   Qubittype = "electron"
@@ -135,7 +140,9 @@ subroutine test_Hahn
   end do
   close(16)
      
-  write(*,*) "Both Averaged_decay_electron_IFF_CP2.dat and Averaged_decay_electron_IFF_CP2_test.dat are ready to be compared..."
+  write(*,*) "Both Averaged_decay_electron_IFF_CP2.dat and &
+       Averaged_decay_electron_IFF_CP2_test.dat are ready &
+       to be compared..."
 
   Qubittype = "electron"
   Dynadeco  = "CP"
@@ -189,7 +196,9 @@ subroutine test_Hahn
   end do
   close(16)
      
-  write(*,*) "Both Averaged_decay_electron_IFF_CP6.dat and Averaged_decay_electron_IFF_CP6_test.dat are ready to be compared..."
+  write(*,*) "Both Averaged_decay_electron_IFF_CP6.dat and &
+       Averaged_decay_electron_IFF_CP6_test.dat are ready &
+       to be compared..."
   
   deallocate (eigen_ener_up, eigen_ener_down)
   deallocate (pseudo_angle_up, pseudo_angle_down)
@@ -200,6 +209,31 @@ subroutine test_Hahn
   deallocate (theta_uf, theta_lf, eps)
 
 end subroutine test_Hahn
+
+subroutine test_matmul_2by2
+  use deco
+  implicit none
+  integer :: i,k
+  double complex :: AA(2,2),BB(2,2),CC(2,2),DD(2,2)
+
+  do i=1,2
+     do k=1,2
+        AA(i,k) = dcmplx(i+k, 0.d0)
+        BB(i,k) = dcmplx(i-k, 0.d0)
+     end do
+  end do
+
+  call matmul_2by2(AA,BB,CC)
+
+  DD = matmul(AA, BB)
+
+  if (all(CC == DD)) then
+     write(*,*)'test matmul_2by2 ok...'
+  else
+     write(*,*)'Pb in matmul_2by2...'
+  end if
+  
+end subroutine test_matmul_2by2
 
 subroutine test_FID
   use types
@@ -212,45 +246,45 @@ subroutine test_FID
   double precision, allocatable :: pseudo_angle_up(:)
   double precision, allocatable :: pseudo_angle_down(:)
   double precision, allocatable :: L_pairs(:)
-  type (rot), allocatable :: matrot_u(:), matrottrans_u(:)
-  type (rot), allocatable :: matrot_d(:), matrottrans_d(:)
-  type (rot), allocatable :: Zgate_u(:), Zgate_d(:)
-  type (rot), allocatable :: Tu(:), Td(:)
+  double complex, allocatable :: matrot_u(:,:,:), matrottrans_u(:,:,:)
+  double complex, allocatable :: matrot_d(:,:,:), matrottrans_d(:,:,:)
+  double complex, allocatable :: Zgate_u(:,:,:), Zgate_d(:,:,:)
+  double complex, allocatable :: Tu(:,:,:), Td(:,:,:)
   character(len=100) :: filename
 
   nb_pairs = 5
 
   allocate (eigen_ener_up(nb_pairs), eigen_ener_down(nb_pairs))
   allocate (pseudo_angle_up(nb_pairs), pseudo_angle_down(nb_pairs))
-  allocate (matrot_u(nb_pairs), matrottrans_u(nb_pairs))
-  allocate (matrot_d(nb_pairs), matrottrans_d(nb_pairs))
-  allocate (Zgate_u(nb_pairs), Zgate_d(nb_pairs))
-  allocate (Tu(nb_pairs), Td(nb_pairs), L_pairs(nb_pairs))
+  allocate (matrot_u(2,2,nb_pairs), matrottrans_u(2,2,nb_pairs))
+  allocate (matrot_d(2,2,nb_pairs), matrottrans_d(2,2,nb_pairs))
+  allocate (Zgate_u(2,2,nb_pairs), Zgate_d(2,2,nb_pairs))
+  allocate (Tu(2,2,nb_pairs), Td(2,2,nb_pairs), L_pairs(nb_pairs))
 
   eigen_ener_up = (/(i, i=1,nb_pairs)/)
   eigen_ener_down = (/(i/2.d0, i=1,nb_pairs)/)
   pseudo_angle_up = (/(i**2, i=1,nb_pairs)/)
   pseudo_angle_down = (/(i**3, i=1,nb_pairs)/)
   
-  matrot_u%elements(1,1)=cos(pseudo_angle_up/2.d0)
-  matrot_u%elements(1,2)=sin(pseudo_angle_up/2.d0)  
-  matrot_u%elements(2,1)=-sin(pseudo_angle_up/2.d0)
-  matrot_u%elements(2,2)=cos(pseudo_angle_up/2.d0)
+  matrot_u(1,1,:)=cos(pseudo_angle_up/2.d0)
+  matrot_u(1,2,:)=sin(pseudo_angle_up/2.d0)  
+  matrot_u(2,1,:)=-sin(pseudo_angle_up/2.d0)
+  matrot_u(2,2,:)=cos(pseudo_angle_up/2.d0)
 
-  matrottrans_u%elements(1,1)=cos(pseudo_angle_up/2.d0)
-  matrottrans_u%elements(1,2)=-sin(pseudo_angle_up/2.d0)  
-  matrottrans_u%elements(2,1)=sin(pseudo_angle_up/2.d0)
-  matrottrans_u%elements(2,2)=cos(pseudo_angle_up/2.d0)
+  matrottrans_u(1,1,:)=cos(pseudo_angle_up/2.d0)
+  matrottrans_u(1,2,:)=-sin(pseudo_angle_up/2.d0)  
+  matrottrans_u(2,1,:)=sin(pseudo_angle_up/2.d0)
+  matrottrans_u(2,2,:)=cos(pseudo_angle_up/2.d0)
 
-  matrot_d%elements(1,1)=cos(pseudo_angle_down/2.d0)
-  matrot_d%elements(1,2)=sin(pseudo_angle_down/2.d0)  
-  matrot_d%elements(2,1)=-sin(pseudo_angle_down/2.d0)
-  matrot_d%elements(2,2)=cos(pseudo_angle_down/2.d0)
+  matrot_d(1,1,:)=cos(pseudo_angle_down/2.d0)
+  matrot_d(1,2,:)=sin(pseudo_angle_down/2.d0)  
+  matrot_d(2,1,:)=-sin(pseudo_angle_down/2.d0)
+  matrot_d(2,2,:)=cos(pseudo_angle_down/2.d0)
 
-  matrottrans_d%elements(1,1)=cos(pseudo_angle_down/2.d0)
-  matrottrans_d%elements(1,2)=-sin(pseudo_angle_down/2.d0)  
-  matrottrans_d%elements(2,1)=sin(pseudo_angle_down/2.d0)
-  matrottrans_d%elements(2,2)=cos(pseudo_angle_down/2.d0)
+  matrottrans_d(1,1,:)=cos(pseudo_angle_down/2.d0)
+  matrottrans_d(1,2,:)=-sin(pseudo_angle_down/2.d0)  
+  matrottrans_d(2,1,:)=sin(pseudo_angle_down/2.d0)
+  matrottrans_d(2,2,:)=cos(pseudo_angle_down/2.d0)
 
   Qubittype = "electron"
 
@@ -271,25 +305,23 @@ subroutine test_FID
 
      do i=1,nb_pairs
 
-        Zgate_u%elements(1,1)=exp(-dcmplx(0.d0,eigen_ener_up)*t)
-        Zgate_u%elements(1,2)=0.d0
-        Zgate_u%elements(2,1)=0.d0
-        Zgate_u%elements(2,2)=exp(dcmplx(0.d0,eigen_ener_up)*t)
+        Zgate_u(1,1,i)=exp(-dcmplx(0.d0,eigen_ener_up(i))*t)
+        Zgate_u(1,2,i)=0.d0
+        Zgate_u(2,1,i)=0.d0
+        Zgate_u(2,2,i)=exp(dcmplx(0.d0,eigen_ener_up(i))*t)
         
-        Zgate_d%elements(1,1)=exp(-dcmplx(0.d0,eigen_ener_down)*t)
-        Zgate_d%elements(1,2)=0.d0
-        Zgate_d%elements(2,1)=0.d0
-        Zgate_d%elements(2,2)=exp(dcmplx(0.d0,eigen_ener_down)*t)
+        Zgate_d(1,1,i)=exp(-dcmplx(0.d0,eigen_ener_down(i))*t)
+        Zgate_d(1,2,i)=0.d0
+        Zgate_d(2,1,i)=0.d0
+        Zgate_d(2,2,i)=exp(dcmplx(0.d0,eigen_ener_down(i))*t)
 
-        Tu(i)%elements = matmul(Zgate_u(i)%elements, matrot_u(i)%elements)
-        Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
+        Tu(:,:,i) = matmul(Zgate_u(:,:,i), matrot_u(:,:,i))
+        Tu(:,:,i) = matmul(matrottrans_u(:,:,i), Tu(:,:,i))
 
-        Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
-        Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
+        Td(:,:,i) = matmul(Zgate_d(:,:,i), matrot_d(:,:,i))
+        Td(:,:,i) = matmul(matrottrans_d(:,:,i), Td(:,:,i))
 
-        L_pairs(i) = abs(conjg(Td(i)%elements(1, 1))*Tu(i)%elements(1, 1) &
-               - Td(i)%elements(1, 2) * Tu(i)%elements(2, 1))
-
+        L_pairs(i) = abs(conjg(Td(1,1,i))*Tu(1,1,i)-Td(1,2,i)*Tu(2,1,i))
         
         L_pairs(i) = 0.5d0 + 0.5d0*L_pairs(i)
 
@@ -300,7 +332,9 @@ subroutine test_FID
   end do
   close(16)
 
-  write(*,*) "Both Averaged_decay_electron_IFF_FID.dat and Averaged_decay_electron_IFF_FID_test.dat are ready to be compared..."
+  write(*,*) "Both Averaged_decay_electron_IFF_FID.dat and &
+       Averaged_decay_electron_IFF_FID_test.dat are ready &
+       to be compared..."
 
   deallocate (eigen_ener_up, eigen_ener_down)
   deallocate (pseudo_angle_up, pseudo_angle_down)
@@ -319,13 +353,13 @@ subroutine test_Z_gate
   double precision :: t
   double precision, allocatable :: eigen_ener_up(:)
   double precision, allocatable :: eigen_ener_down(:)
-  type (rot), allocatable :: Zgate_u(:), Zgate_d(:)
+  double complex, allocatable :: Zgate_u(:,:,:), Zgate_d(:,:,:)
   logical :: test
 
   nb_pairs = 5
 
   allocate (eigen_ener_up(nb_pairs), eigen_ener_down(nb_pairs))
-  allocate (Zgate_u(nb_pairs), Zgate_d(nb_pairs))
+  allocate (Zgate_u(2,2,nb_pairs), Zgate_d(2,2,nb_pairs))
 
   eigen_ener_up = (/(i, i=1,nb_pairs)/)
   eigen_ener_down = (/(i**2, i=1,nb_pairs)/)
@@ -336,18 +370,18 @@ subroutine test_Z_gate
      call Z_gate (eigen_ener_up, t, Zgate_u)
      call Z_gate (eigen_ener_down, t, Zgate_d)
 
-     if (Zgate_u(i)%elements(1,1) .ne. exp(-dcmplx(0.d0,dble(i)*t))) &
+     if (Zgate_u(1,1,i) .ne. exp(-dcmplx(0.d0,dble(i)*t))) &
           test = .false.
-     if (Zgate_u(i)%elements(1,2) .ne. dcmplx(0.d0,0.d0)) test = .false.
-     if (Zgate_u(i)%elements(2,1) .ne. dcmplx(0.d0,0.d0)) test = .false.
-     if (Zgate_u(i)%elements(2,2) .ne. exp(dcmplx(0.d0,dble(i)*t))) &
+     if (Zgate_u(1,2,i) .ne. dcmplx(0.d0,0.d0)) test = .false.
+     if (Zgate_u(2,1,i) .ne. dcmplx(0.d0,0.d0)) test = .false.
+     if (Zgate_u(2,2,i) .ne. exp(dcmplx(0.d0,dble(i)*t))) &
           test = .false.
 
-     if (Zgate_d(i)%elements(1,1) .ne. exp(-dcmplx(0.d0,dble(i**2)*t))) &
+     if (Zgate_d(1,1,i) .ne. exp(-dcmplx(0.d0,dble(i**2)*t))) &
           test = .false.
-     if (Zgate_d(i)%elements(1,2) .ne. dcmplx(0.d0,0.d0)) test = .false.
-     if (Zgate_d(i)%elements(2,1) .ne. dcmplx(0.d0,0.d0)) test = .false.
-     if (Zgate_d(i)%elements(2,2) .ne. exp(dcmplx(0.d0,dble(i**2)*t))) &
+     if (Zgate_d(1,2,i) .ne. dcmplx(0.d0,0.d0)) test = .false.
+     if (Zgate_d(2,1,i) .ne. dcmplx(0.d0,0.d0)) test = .false.
+     if (Zgate_d(2,2,i) .ne. exp(dcmplx(0.d0,dble(i**2)*t))) &
           test = .false.
 
   end do
@@ -367,15 +401,15 @@ subroutine test_rotmat
   integer :: i 
   double precision, allocatable :: pseudo_angle_up(:)
   double precision, allocatable :: pseudo_angle_down(:)
-  type (rot), allocatable :: matrot_u(:), matrottrans_u(:)
-  type (rot), allocatable :: matrot_d(:), matrottrans_d(:)
+  double complex, allocatable :: matrot_u(:,:,:), matrottrans_u(:,:,:)
+  double complex, allocatable :: matrot_d(:,:,:), matrottrans_d(:,:,:)
   logical :: test
 
   nb_pairs = 5
 
   allocate (pseudo_angle_up(nb_pairs), pseudo_angle_down(nb_pairs))
-  allocate (matrot_u(nb_pairs), matrottrans_u(nb_pairs))
-  allocate (matrot_d(nb_pairs), matrottrans_d(nb_pairs))
+  allocate (matrot_u(2,2,nb_pairs), matrottrans_u(2,2,nb_pairs))
+  allocate (matrot_d(2,2,nb_pairs), matrottrans_d(2,2,nb_pairs))
 
   pseudo_angle_up = (/(i, i=1,nb_pairs)/)
   pseudo_angle_down  = (/(i**2, i=1,nb_pairs)/)
@@ -385,25 +419,25 @@ subroutine test_rotmat
 
   test = .true.
   do i=1,nb_pairs
-     if (matrot_u(i)%elements(1,1) .ne. cos(i * 0.5d0)) test = .false.
-     if (matrot_u(i)%elements(1,2) .ne. sin(i * 0.5d0)) test = .false.
-     if (matrot_u(i)%elements(2,1) .ne. -sin(i * 0.5d0)) test = .false.
-     if (matrot_u(i)%elements(2,2) .ne. cos(i * 0.5d0)) test = .false.
+     if (matrot_u(1,1,i) .ne. cos(i * 0.5d0)) test = .false.
+     if (matrot_u(1,2,i) .ne. sin(i * 0.5d0)) test = .false.
+     if (matrot_u(2,1,i) .ne. -sin(i * 0.5d0)) test = .false.
+     if (matrot_u(2,2,i) .ne. cos(i * 0.5d0)) test = .false.
 
-     if (matrottrans_u(i)%elements(1,1) .ne. cos(i * 0.5d0)) test = .false.
-     if (matrottrans_u(i)%elements(1,2) .ne. -sin(i * 0.5d0)) test = .false.
-     if (matrottrans_u(i)%elements(2,1) .ne. sin(i * 0.5d0)) test = .false.
-     if (matrottrans_u(i)%elements(2,2) .ne. cos(i * 0.5d0)) test = .false.
+     if (matrottrans_u(1,1,i) .ne. cos(i * 0.5d0)) test = .false.
+     if (matrottrans_u(1,2,i) .ne. -sin(i * 0.5d0)) test = .false.
+     if (matrottrans_u(2,1,i) .ne. sin(i * 0.5d0)) test = .false.
+     if (matrottrans_u(2,2,i) .ne. cos(i * 0.5d0)) test = .false.
 
-     if (matrot_d(i)%elements(1,1) .ne. cos(i**2 * 0.5d0)) test = .false.
-     if (matrot_d(i)%elements(1,2) .ne. sin(i**2 * 0.5d0)) test = .false.
-     if (matrot_d(i)%elements(2,1) .ne. -sin(i**2 * 0.5d0)) test = .false.
-     if (matrot_d(i)%elements(2,2) .ne. cos(i**2 * 0.5d0)) test = .false.
+     if (matrot_d(1,1,i) .ne. cos(i**2 * 0.5d0)) test = .false.
+     if (matrot_d(1,2,i) .ne. sin(i**2 * 0.5d0)) test = .false.
+     if (matrot_d(2,1,i) .ne. -sin(i**2 * 0.5d0)) test = .false.
+     if (matrot_d(2,2,i) .ne. cos(i**2 * 0.5d0)) test = .false.
 
-     if (matrottrans_d(i)%elements(1,1) .ne. cos(i**2 * 0.5d0)) test = .false.
-     if (matrottrans_d(i)%elements(1,2) .ne. -sin(i**2 * 0.5d0)) test = .false.
-     if (matrottrans_d(i)%elements(2,1) .ne. sin(i**2 * 0.5d0)) test = .false.
-     if (matrottrans_d(i)%elements(2,2) .ne. cos(i**2 * 0.5d0)) test = .false.
+     if (matrottrans_d(1,1,i) .ne. cos(i**2 * 0.5d0)) test = .false.
+     if (matrottrans_d(1,2,i) .ne. -sin(i**2 * 0.5d0)) test = .false.
+     if (matrottrans_d(2,1,i) .ne. sin(i**2 * 0.5d0)) test = .false.
+     if (matrottrans_d(2,2,i) .ne. cos(i**2 * 0.5d0)) test = .false.
   end do
 
   if (test) write(*,*) "test rotmat ok..."
