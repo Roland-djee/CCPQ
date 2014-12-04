@@ -1,3 +1,6 @@
+# List of files to be ignored
 *.dat
+*.dat~
 *.exe
+*.out
 *.o
