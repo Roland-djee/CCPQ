@@ -39,9 +39,4 @@ module types
   end type lat
   type (lat) :: lattice
 
-  ! 2x2 Rotation matrices
-  type rot
-     double complex    :: elements(2, 2) 
-  end type rot
-
 end module types
