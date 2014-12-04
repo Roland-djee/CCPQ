@@ -11,5 +11,5 @@ Vector coordinates [integer, integer, integer] : 1,1,3
 Lattice modulo [integer]                       : 4
 Percentage of impurities [real]                : 4.67D0
 Impurities distribution [Uniform]              : Uniform
-Cubic cell range [-N, N] [integer]             : 2
+Cubic cell range [-N, N] [integer]             : 3
 Lattice parameter [real]                       : 5.43D0
