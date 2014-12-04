@@ -17,14 +17,15 @@ COMP = ifort
 # ifort FLAGS
 
 #WFLAGS   = -warn argument checking -check underflow
-WFLAGS   = -C -check all -warn all,nodec,interfaces -gen_interfaces -traceback
+#WFLAGS   = -C -check all -warn all,nodec,interfaces -gen_interfaces -traceback
 #WFLAGS   = -check all -warn all -traceback
+WFLAGS   =  -nowarn
 #CFLAGS   = -c -g -heap-arrays # available with ifort
 #LAPACK   = -L/usr/atlas/lib -llapack -lblas -lgfortran
 #LAPACK   = -L/usr/lib -llapack -lblas
 #OPTFLAGS = -O3 -mtune=core2
-PARFLAGS = -openmp
-OPTFLAGS = -O3 
+#PARFLAGS = -openmp
+OPTFLAGS = -fast -vec-report
 #DEBUGFLAGS = -g # available with ifort
 
 # gfortran FLAGS
@@ -86,7 +87,7 @@ all: $(EXEC) Class Mrproper
 # Etape de compilation de tous les fichiers modules .f90 en .o
 
 Modules:
-	@$(COMP) $(CFLAGS) $(PARFLAGS) $(WFLAGS) $(MOD) $(PROFLAGS)
+	@$(COMP) $(CFLAGS) $(PARFLAGS) $(WFLAGS) $(OPTFLAGS) $(MOD) $(PROFLAGS)
 
 # Etape de compilation de tous les fichiers sources .f90 en .o
 
