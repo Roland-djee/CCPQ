@@ -217,12 +217,12 @@ contains
     character(len=*), parameter :: fmt="(es20.10e3, es20.10e3)"
     character(len=100) :: filename
 
-    type (rot) :: matrot_u(nb_pairs), matrottrans_u(nb_pairs)
-    type (rot) :: matrot_d(nb_pairs), matrottrans_d(nb_pairs)
-    type (rot) :: Zgate_u(nb_pairs), Zgate_d(nb_pairs)
-    type (rot) :: Tu(nb_pairs), Td(nb_pairs)
-    type (rot) :: Tud(nb_pairs), Tdu(nb_pairs)
-    type (rot) :: Tfu(nb_pairs), Tfd(nb_pairs)
+    double complex :: matrot_u(2,2,nb_pairs), matrottrans_u(2,2,nb_pairs)
+    double complex :: matrot_d(2,2,nb_pairs), matrottrans_d(2,2,nb_pairs)
+    double complex :: Zgate_u(2,2,nb_pairs) , Zgate_d(2,2,nb_pairs)
+    double complex :: Tu(2,2,nb_pairs) , Td(2,2,nb_pairs)
+    double complex :: Tud(2,2,nb_pairs), Tdu(2,2,nb_pairs)
+    double complex :: Tfu(2,2,nb_pairs), Tfd(2,2,nb_pairs)
 
     double precision :: L_pairs(nb_pairs)
     
@@ -257,47 +257,57 @@ contains
     do j=1,nb_pts_t + 1
        t = t + dt
        ! Compute Zgates for all pairs in up/down states
-       call Z_gate (eigen_ener_up, t / dble(2 * CP_seq), Zgate_u)
+       call Z_gate (eigen_ener_up,   t / dble(2 * CP_seq), Zgate_u)
        call Z_gate (eigen_ener_down, t / dble(2 * CP_seq), Zgate_d)
 
        ! Initialize identity matrices
-       Tfu%elements(1,1) = dcmplx(1.d0, 0.d0)
-       Tfu%elements(1,2) = dcmplx(0.d0, 0.d0)
-       Tfu%elements(2,1) = dcmplx(0.d0, 0.d0)
-       Tfu%elements(2,2) = dcmplx(1.d0, 0.d0)
-       Tfd%elements(1,1) = dcmplx(1.d0, 0.d0)
-       Tfd%elements(1,2) = dcmplx(0.d0, 0.d0)
-       Tfd%elements(2,1) = dcmplx(0.d0, 0.d0)
-       Tfd%elements(2,2) = dcmplx(1.d0, 0.d0)
+       Tfu(1,1,:) = dcmplx(1.d0, 0.d0)
+       Tfu(1,2,:) = dcmplx(0.d0, 0.d0)
+       Tfu(2,1,:) = dcmplx(0.d0, 0.d0)
+       Tfu(2,2,:) = dcmplx(1.d0, 0.d0)
+       Tfd(1,1,:) = dcmplx(1.d0, 0.d0)
+       Tfd(1,2,:) = dcmplx(0.d0, 0.d0)
+       Tfd(2,1,:) = dcmplx(0.d0, 0.d0)
+       Tfd(2,2,:) = dcmplx(1.d0, 0.d0)
 
        ! work out transition matrices in up/down states
        ! and compute the decoherence
        do i=1,nb_pairs
           ! rotate to eigenbasis and propagate
-          Tu(i)%elements = matmul(Zgate_u(i)%elements, matrot_u(i)%elements)
+          !Tu(i)%elements = matmul(Zgate_u(:,:,i), matrot_u(i)%elements)
+          call matmul_2by2(Zgate_u(:,:,i), matrot_u(:,:,i), Tu(:,:,i))   
           ! rotate back to bath basis
-          Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
+          !Tu(i)%elements = matmul(matrottrans_u(i)%elements, Tu(i)%elements)
+          call matmul_2by2(matrottrans_u(:,:,i), Tu(:,:,i), Tu(:,:,i))
           ! Idem down state
-          Td(i)%elements = matmul(Zgate_d(i)%elements, matrot_d(i)%elements)
-          Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
+          !Td(i)%elements = matmul(Zgate_d(:,:,i), matrot_d(i)%elements)
+          call matmul_2by2(Zgate_d(:,:,i), matrot_d(:,:,i), Td(:,:,i))
+          !Td(i)%elements = matmul(matrottrans_d(i)%elements, Td(i)%elements)
+          call matmul_2by2(matrottrans_d(:,:,i), Td(:,:,i), Td(:,:,i))
 
           ! Initialize Tud and Tdu
-          Tud(i)%elements = matmul(Tu(i)%elements, Td(i)%elements)
-          Tdu(i)%elements = matmul(Td(i)%elements, Tu(i)%elements)
+          !Tud(i)%elements = matmul(Tu(i)%elements, Td(i)%elements)
+          call matmul_2by2(Tu(:,:,i), Td(:,:,i), Tud(:,:,i))
+          !Tdu(i)%elements = matmul(Td(i)%elements, Tu(i)%elements)
+          call matmul_2by2(Td(:,:,i), Tu(:,:,i), Tdu(:,:,i))
 
-         do k=1,CP_seq
-             if(modulo(k, 2) .ne. 0) then
-                Tfu(i)%elements = matmul(Tfu(i)%elements, Tud(i)%elements)
-                Tfd(i)%elements = matmul(Tfd(i)%elements, Tdu(i)%elements)
-             else if(modulo(k, 2) == 0) then
-                Tfu(i)%elements = matmul(Tfu(i)%elements, Tdu(i)%elements)
-                Tfd(i)%elements = matmul(Tfd(i)%elements, Tud(i)%elements)
+          ! CPMG sequence
+          do k=1,CP_seq
+             if( iand(k,1) == 1) then
+                !Tfu(i)%elements = matmul(Tfu(i)%elements, Tud(i)%elements)
+                call matmul_2by2(Tfu(:,:,i), Tud(:,:,i), Tfu(:,:,i))
+                !Tfd(i)%elements = matmul(Tfd(i)%elements, Tdu(i)%elements)
+                call matmul_2by2(Tfd(:,:,i), Tdu(:,:,i), Tfd(:,:,i))
+             else
+                !Tfu(i)%elements = matmul(Tfu(i)%elements, Tdu(i)%elements)
+                call matmul_2by2(Tfu(:,:,i), Tdu(:,:,i), Tfu(:,:,i))
+                !Tfd(i)%elements = matmul(Tfd(i)%elements, Tud(i)%elements)
+                call matmul_2by2(Tfd(:,:,i), Tud(:,:,i), Tfd(:,:,i))
              end if
           end do
 
           ! Decoherence from initial |down-up> bath state
-          L_pairs(i) = abs(conjg(Tfd(i)%elements(1, 1))*Tfu(i)%elements(1, 1) &
-               - Tfd(i)%elements(1, 2) * Tfu(i)%elements(2, 1))
+          L_pairs(i) = abs(conjg(Tfd(1,1,i))*Tfu(1,1,i) - Tfd(1,2,i)*Tfu(2,1,i))
           
           ! average over the bath states
           L_pairs(i) = 0.5d0 + 0.5d0 * L_pairs(i)
@@ -313,6 +323,21 @@ contains
     close(16)
 
   end subroutine Hahn
+
+  subroutine matmul_2by2(A,B,D)
+    implicit none
+    double complex, intent(in)  :: A(2,2),B(2,2)
+    double complex, intent(out) :: D(2,2)
+    double complex :: C(2,2)
+   
+    C(1,1) = A(1,1) * B(1,1) + A(1,2) * B(2,1)
+    C(1,2) = A(1,1) * B(1,2) + A(1,2) * B(2,2)
+    C(2,1) = A(2,1) * B(1,1) + A(2,2) * B(2,1)
+    C(2,2) = A(2,1) * B(1,2) + A(2,2) * B(2,2)
+
+    D = C
+    
+  end subroutine matmul_2by2
 
   subroutine FID (eigen_ener_up, eigen_ener_down, pseudo_angle_up, &
                   pseudo_angle_down)
@@ -377,35 +402,35 @@ contains
     implicit none
     double precision, intent(in) :: eigen_ener(nb_pairs)
     double precision, intent(in) :: t
-    type (rot), intent(out) :: Zgate(nb_pairs)
+    double complex, intent(out) :: Zgate(2,2,nb_pairs)
     ! Local array 
     double complex :: phase(nb_pairs)
     
-    phase = dcmplx(0.d0, eigen_ener)
-    Zgate%elements(1, 1) = exp(- phase * t)
-    Zgate%elements(1, 2) = dcmplx(0.d0, 0.d0)
-    Zgate%elements(2, 1) = dcmplx(0.d0, 0.d0)
-    Zgate%elements(2, 2) = exp(phase * t)
+    phase = dcmplx(0.d0, eigen_ener) * t
+    Zgate(1, 1, :) = exp(-phase)
+    Zgate(1, 2, :) = dcmplx(0.d0, 0.d0)
+    Zgate(2, 1, :) = dcmplx(0.d0, 0.d0)
+    Zgate(2, 2, :) = exp(phase)
         
   end subroutine Z_gate
 
   subroutine rotmat (pseudo_angle, matrot, matrottrans)
     implicit none
     double precision, intent(in) :: pseudo_angle(nb_pairs)
-    type (rot), intent(out) :: matrot(nb_pairs)
-    type (rot), intent(out) :: matrottrans(nb_pairs)
+    double complex, intent(out) :: matrot(2,2,nb_pairs)
+    double complex, intent(out) :: matrottrans(2,2,nb_pairs)
     
     ! set all 2x2 elements matrix components
-    matrot%elements(1, 1) = dcmplx(dcos(pseudo_angle * 0.5d0), 0.d0) 
-    matrot%elements(1, 2) = dcmplx(dsin(pseudo_angle * 0.5d0), 0.d0) 
-    matrot%elements(2, 1) = -matrot%elements(1, 2)
-    matrot%elements(2, 2) = matrot%elements(1, 1)
+    matrot(1, 1, :) = dcmplx(dcos(pseudo_angle * 0.5d0), 0.d0) 
+    matrot(1, 2, :) = dcmplx(dsin(pseudo_angle * 0.5d0), 0.d0) 
+    matrot(2, 1, :) = -matrot(1, 2, :)
+    matrot(2, 2, :) =  matrot(1, 1, :)
 
     ! set transpose matrix
-    matrottrans%elements(1, 1) = matrot%elements(1, 1)
-    matrottrans%elements(1, 2) = matrot%elements(2, 1)
-    matrottrans%elements(2, 1) = matrot%elements(1, 2)
-    matrottrans%elements(2, 2) = matrot%elements(1, 1)
+    matrottrans(1, 1, :) = matrot(1, 1, :)
+    matrottrans(1, 2, :) = matrot(2, 1, :)
+    matrottrans(2, 1, :) = matrot(1, 2, :)
+    matrottrans(2, 2, :) = matrot(1, 1, :)
 
   end subroutine rotmat
 
