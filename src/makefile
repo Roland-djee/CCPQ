@@ -17,7 +17,7 @@ COMP = ifort
 # ifort FLAGS
 
 #WFLAGS   = -warn argument checking -check underflow
-WFLAGS   = -C -check all -warn all,nodec,interfaces -gen_interfaces -traceback # available with ifort 
+WFLAGS   = -C -check all -warn all,nodec,interfaces -gen_interfaces -traceback
 #WFLAGS   = -check all -warn all -traceback
 #CFLAGS   = -c -g -heap-arrays # available with ifort
 #LAPACK   = -L/usr/atlas/lib -llapack -lblas -lgfortran
