@@ -1,4 +1,5 @@
 # List of files to be ignored
+*.inp
 *.dat
 *.dat~
 *.exe
